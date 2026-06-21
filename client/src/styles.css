@@ -397,7 +397,7 @@ h1, h2, h3, h4 { font-family: "Fredoka", sans-serif; font-weight: 700; line-heig
 .ac-prompt { color: var(--coral-dk); font-size: .5em; font-weight: 700; opacity: .85; }
 .ac-text { line-height: 1.08; }
 
-/* the star: one truth bomb, dead center, as big as it gets */
+/* the star: one answer, dead center, as big as it gets */
 .bomb-card {
   background: var(--cream); color: var(--ink); border-radius: var(--r-lg);
   padding: clamp(28px, 5vw, 64px) clamp(30px, 6vw, 80px);
@@ -406,6 +406,7 @@ h1, h2, h3, h4 { font-family: "Fredoka", sans-serif; font-weight: 700; line-heig
 }
 .bomb-prompt { color: var(--coral-dk); font-family: "Fredoka", sans-serif; font-weight: 700; font-size: clamp(18px, 2.6vw, 34px); }
 .bomb-answer { font-family: "Fredoka", sans-serif; font-weight: 700; font-size: clamp(36px, 6.5vw, 92px); line-height: 1.02; }
+.bomb-suspense { font-size: clamp(44px, 9vw, 96px); animation: pulse 1.1s infinite; }
 .reveal-target-row { display: flex; align-items: center; gap: 14px; }
 .rt-label { font-family: "Fredoka", sans-serif; font-weight: 600; color: var(--muted); font-size: clamp(18px, 2.2vw, 30px); }
 .rt-label b { font-weight: 700; }

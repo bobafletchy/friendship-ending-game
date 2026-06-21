@@ -56,12 +56,14 @@ function broadcast(room) {
     room._lastPhase = room.phase;
     room.phaseAt = now;
     room.revealStepAt = now;
+    room.stageAt = now;
     room._lastGroup = room.round?.groupCursor;
     room.groupAt = now;
   } else if (room.round && room.round.groupCursor !== room._lastGroup) {
     room._lastGroup = room.round.groupCursor;
     room.groupAt = now;
-    room.revealStepAt = now;   // new target: restart the one-at-a-time rollout
+    room.revealStepAt = now;   // new target: restart the rollout
+    room.stageAt = now;        // restart the prompt->answer staging
     room.pickReadyAt = 0;
   }
   // TV / host
@@ -277,11 +279,13 @@ io.on("connection", (socket) => {
 // Auto-advance the show so the host never has to click "next".
 // Timings (ms): how long each non-interactive phase lingers before moving on.
 const AUTO = {
-  introHold: 5500,      // round title on screen
-  revealStep: 3600,     // between answers in vote rounds
-  votePatience: 28000,  // fallback if someone never votes
-  scoresHold: 9000,     // scoreboard linger
-  pickPatience: 32000,  // fallback if a Target never picks
+  introHold: 5500,        // round title on screen
+  promptHold: 4000,       // Hot Seat: show the question alone before the answer
+  answerHold: 3200,       // Hot Seat: linger on the answer before the next one
+  madlibsStep: 6000,      // Friendship Test: each twisted line stays up longer
+  votePatience: 28000,    // fallback if someone never votes
+  scoresHold: 9000,       // scoreboard linger
+  pickPatience: 32000,    // fallback if a Target never picks
 };
 setInterval(() => {
   const now = Date.now();
@@ -293,7 +297,8 @@ setInterval(() => {
         startAnswerTimer(room); // -> answering (+broadcast)
       } else if (room.phase === "reveal" && r) {
         if (r.kind !== "targeted") {
-          if (now - (room.revealStepAt || 0) > AUTO.revealStep) {
+          // Friendship Test: each twisted line stays up longer
+          if (now - (room.revealStepAt || 0) > AUTO.madlibsStep) {
             game.advanceReveal(room);
             room.revealStepAt = now;
             broadcast(room);
@@ -301,12 +306,14 @@ setInterval(() => {
         } else {
           const g = game.currentGroup(room);
           if (g) {
-            if (r.answerCursor < g.answers.length) {
-              // roll out this target's truth bombs one at a time
-              if (now - (room.revealStepAt || 0) > AUTO.revealStep) {
-                r.answerCursor++;
-                room.revealStepAt = now;
-                if (r.answerCursor >= g.answers.length) room.pickReadyAt = now;
+            const allRevealed = game.targetedAllRevealed(room);
+            if (!allRevealed) {
+              // two-stage rollout: hold the question 4s, then reveal the answer
+              const dwell = r.answerStage === "prompt" ? AUTO.promptHold : AUTO.answerHold;
+              if (now - (room.stageAt || 0) > dwell) {
+                game.advanceReveal(room);
+                room.stageAt = now;
+                if (game.targetedAllRevealed(room)) room.pickReadyAt = now;
                 broadcast(room);
               }
             } else {

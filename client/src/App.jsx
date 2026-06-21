@@ -68,15 +68,15 @@ export default function App() {
     setPlayerId(null);
   }
 
-  // Esc opens/closes the in-game menu (main-menu escape hatch).
+  // Esc opens/closes the settings menu anywhere (including the main menu).
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key !== "Escape" || mode === "home") return;
+      if (e.key !== "Escape") return;
       setMenuOpen((o) => !o);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [mode]);
+  }, []);
 
   const inGame = mode === "host" || mode === "player";
 
@@ -90,14 +90,11 @@ export default function App() {
       </div>
       {!connected && <div className="conn-banner">Reconnecting… (you'll be put right back in)</div>}
 
-      {inGame && (
-        <button className="cog-btn" title="Menu (Esc)" onClick={() => setMenuOpen(true)}>⚙️</button>
-      )}
-      {menuOpen && inGame && (
+      <button className="cog-btn" title="Settings (Esc)" onClick={() => setMenuOpen(true)}>⚙️</button>
+      {menuOpen && (
         <div className="menu-overlay" onClick={() => setMenuOpen(false)}>
           <div className="menu-card" onClick={(e) => e.stopPropagation()}>
-            <h2 className="menu-title">Menu</h2>
-            <button className="btn btn-big btn-lime" onClick={() => setMenuOpen(false)}>← Back to game</button>
+            <h2 className="menu-title">{inGame ? "Menu" : "Settings"}</h2>
             <div className="menu-toggles">
               <button className={`btn toggle ${musicOn ? "on" : ""}`} onClick={toggleMusic}>
                 {musicOn ? "🎵 Music: On" : "🔇 Music: Off"}
@@ -106,12 +103,17 @@ export default function App() {
                 {sfxOnState ? "🔊 SFX: On" : "🔈 SFX: Off"}
               </button>
             </div>
-            <button className="btn btn-big btn-ghost" onClick={leave}>🏠 Main menu</button>
-            <p className="menu-note">
-              {mode === "host"
-                ? "Leaving ends this room for everyone."
-                : "You can rejoin with the same code & name anytime — your score is kept."}
-            </p>
+            <button className="btn btn-big btn-lime" onClick={() => setMenuOpen(false)}>
+              {inGame ? "← Back to game" : "Done"}
+            </button>
+            {inGame && <button className="btn btn-big btn-ghost" onClick={leave}>🏠 Main menu</button>}
+            {inGame && (
+              <p className="menu-note">
+                {mode === "host"
+                  ? "Leaving ends this room for everyone."
+                  : "You can rejoin with the same code & name anytime — your score is kept."}
+              </p>
+            )}
           </div>
         </div>
       )}

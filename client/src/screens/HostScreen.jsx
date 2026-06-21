@@ -16,7 +16,7 @@ function sceneFor(ph) {
 }
 
 const ROUND_LABEL = {
-  targeted: "TRUTH BOMBS",
+  targeted: "THE HOT SEAT",
   madlibs: "THE FRIENDSHIP TEST",
 };
 
@@ -70,13 +70,14 @@ export default function HostScreen({ code }) {
       setScene(sceneFor(ph)); // crossfade the background track to match the phase
       if (ph === "vote" || ph === "tiebreak_vote") sfx.vote();
       else if (ph === "round_scores") sfx.score();
-      s.phase = ph; s.count = 0; s.mad = 0; s.gi = 0;
+      s.phase = ph; s.mad = 0; s.lastAns = null;
     }
     const rv = state.reveal;
     if (ph === "reveal" && rv) {
       if (rv.kind === "targeted") {
-        if (rv.index !== s.gi) { s.gi = rv.index; s.count = 0; }
-        if ((rv.revealedCount || 0) > s.count) { sfx.reveal(); s.count = rv.revealedCount; }
+        // ping when the ANSWER drops in (not the question)
+        const key = `${rv.index}:${rv.answerNum}`;
+        if (rv.current?.text && s.lastAns !== key) { sfx.reveal(); s.lastAns = key; }
       } else if (typeof rv.revealCursor === "number" && rv.revealCursor > s.mad) {
         sfx.reveal(); s.mad = rv.revealCursor;
       }
@@ -250,19 +251,21 @@ function Reveal({ state, onNext }) {
   if (!r) return <div className="screen-center"><h2>…</h2></div>;
 
   if (r.kind === "targeted") {
-    const latest = r.answers[r.answers.length - 1];
     return (
       <div className="reveal-targeted screen-center fade-in">
         <div className="reveal-target-row pop-in">
           <Avatar index={r.targetAvatar} size={56} />
           <span className="rt-label">answers about <b style={{ color: r.targetColor }}>{r.targetName}</b></span>
         </div>
-        <p className="kicker">truth bomb {Math.max(1, r.revealedCount)} of {r.totalAnswers} · target {r.index}/{r.total}</p>
+        <p className="kicker">answer {r.answerNum} of {r.totalAnswers} · {r.index}/{r.total} on the hot seat</p>
 
-        {!r.allRevealed && latest ? (
-          <div className="bomb-card flip-in" key={latest.id}>
-            {latest.promptText && <span className="bomb-prompt">"{latest.promptText}"</span>}
-            <span className="bomb-answer">{latest.text}</span>
+        {!r.allRevealed && r.current ? (
+          // ROLLOUT: question alone first, then the answer drops in under it
+          <div className="bomb-card" key={`${r.index}-${r.answerNum}`}>
+            <span className="bomb-prompt flip-in">"{r.current.promptText}"</span>
+            {r.current.text
+              ? <span className="bomb-answer flip-in">{r.current.text}</span>
+              : <span className="bomb-suspense">🤔💭</span>}
           </div>
         ) : (
           <>

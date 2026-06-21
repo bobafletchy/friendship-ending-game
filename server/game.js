@@ -24,7 +24,7 @@ const TARGETED_SECONDS = 120; // more time — you write about everyone
 const MIN_PLAYERS = 3;
 const TARGET_CAP = 5; // max people you write about per round (keeps big groups sane)
 
-// Truth Bombs core (write about everyone) + the signature Friendship Test twist.
+// Core round (write about everyone) + the signature Friendship Test twist.
 // Final round is chaos x2.
 const ROUND_PLAN = ["targeted", "madlibs", "targeted", "madlibs", "targeted"];
 
@@ -312,7 +312,7 @@ export class Game {
     };
 
     if (kind === "targeted") {
-      // Truth Bombs: every player writes one answer about each other player
+      // Hot Seat: every player writes one answer about each other player
       // (capped for big groups), each with its own prompt.
       for (const writer of playerIds) {
         let targets = makeDeck(playerIds.filter((p) => p !== writer));
@@ -409,7 +409,8 @@ export class Game {
         .filter(([, answers]) => answers.length > 0)
         .map(([targetId, answers]) => ({ targetId, answers: makeDeck(answers) }));
       round.groupCursor = 0;
-      round.answerCursor = 1; // show the first truth bomb immediately
+      round.answerCursor = 1;        // which answer we're on for this target
+      round.answerStage = "prompt";  // "prompt" (show question 4s) -> "answer"
       room.phase = "reveal";
     } else {
       // madlibs: flatten twisted sentences into a reveal list for group voting
@@ -424,15 +425,19 @@ export class Game {
     }
   }
 
-  // nudges the reveal forward one step (each answer appears one at a time)
+  // nudges the reveal forward one step: prompt -> answer -> next prompt -> ...
   advanceReveal(room) {
     const round = room.round;
     if (round.kind === "targeted") {
       const g = this.currentGroup(room);
-      if (g && round.answerCursor < g.answers.length) {
-        round.answerCursor++; // reveal the next truth bomb
+      if (!g) { this.finishGroup(room); return; }
+      if (round.answerStage === "prompt") {
+        round.answerStage = "answer"; // flip the question to its filled-in answer
+      } else if (round.answerCursor < g.answers.length) {
+        round.answerCursor++;          // move to the next question
+        round.answerStage = "prompt";
       } else {
-        this.finishGroup(room); // all shown (and picked/skipped) -> next target
+        this.finishGroup(room);        // all shown -> next target
       }
       return;
     }
@@ -446,7 +451,7 @@ export class Game {
 
   targetedAllRevealed(room) {
     const g = this.currentGroup(room);
-    return !!g && room.round.answerCursor >= g.answers.length;
+    return !!g && room.round.answerCursor >= g.answers.length && room.round.answerStage === "answer";
   }
 
   // -------------------- TARGETED PICKS -----------------------
@@ -480,7 +485,8 @@ export class Game {
   finishGroup(room) {
     const round = room.round;
     round.groupCursor++;
-    round.answerCursor = 1; // next target shows its first bomb immediately
+    round.answerCursor = 1;
+    round.answerStage = "prompt"; // next target starts on its first question
     if (round.groupCursor >= round.revealGroups.length) {
       room.phase = "round_scores";
     }
@@ -626,16 +632,20 @@ export class Game {
       if (round.kind === "targeted") {
         const g = this.currentGroup(room);
         if (g) {
-          const shown = g.answers.slice(0, round.answerCursor);
+          const allRevealed = this.targetedAllRevealed(room);
+          const cur = g.answers[round.answerCursor - 1];
           base.reveal = {
             kind: "targeted",
             targetName: room.players.get(g.targetId)?.name,
             targetColor: room.players.get(g.targetId)?.color,
             targetAvatar: room.players.get(g.targetId)?.avatar,
-            answers: shown.map((a) => ({ id: a.id, text: a.text, promptText: a.promptText })),
-            revealedCount: round.answerCursor,
+            // during rollout: one question at a time; prompt shows first, then the answer
+            current: cur ? { promptText: cur.promptText, text: round.answerStage === "answer" ? cur.text : null } : null,
+            answerNum: round.answerCursor,
             totalAnswers: g.answers.length,
-            allRevealed: round.answerCursor >= g.answers.length,
+            allRevealed,
+            // at pick time, hand over every answer so the room can see them all
+            answers: allRevealed ? g.answers.map((a) => ({ id: a.id, text: a.text, promptText: a.promptText })) : [],
             index: round.groupCursor + 1,
             total: round.revealGroups.length,
           };
@@ -780,7 +790,7 @@ export class Game {
               .map((p) => ({ id: p.id, name: p.name, color: p.color, avatar: p.avatar })),
           };
         } else if (g && g.targetId === playerId && !allRevealed) {
-          view.task = { type: "watch", message: "Your truth bombs are dropping… 😬" };
+          view.task = { type: "watch", message: "Your answers are dropping… 😬" };
         } else {
           const tName = g ? room.players.get(g.targetId)?.name : "";
           view.task = { type: "watch", message: g ? `${tName} is on the hot seat…` : "Watch the screen!" };
@@ -843,7 +853,7 @@ export class Game {
 
 const ROUND_INTRO = {
   targeted: {
-    title: "Truth Bombs",
+    title: "The Hot Seat",
     blurb: "Write an answer about EACH of your friends. Anonymously. Then they pick a favorite and guess who wrote it.",
   },
   madlibs: {

@@ -11,7 +11,7 @@ export const AVATARS = [
   { name: "Yuck",   color: "#B6E36A" }, // 5 the puking one
   { name: "Bob",    color: "#F2C49B" }, // 6 businessman w/ comb-over
   { name: "Chode",  color: "#9B6BFF" }, // 7 eggplant
-  { name: "Peaches", color: "#FFB07A" }, // 8 peach
+  { name: "Peachy", color: "#FFB07A" }, // 8 peach
   { name: "Tako",   color: "#FFCB47" }, // 9 taco
   { name: "Bones",  color: "#EDEBE2" }, // 10 skull
   { name: "Drippy", color: "#C6FF3D" }, // 11 slime
@@ -112,16 +112,8 @@ function Critter({ index, c }) {
         <path d="M44 66c1 6 11 6 12 0Z" fill="#FF5C49" />
       </g>);
     }
-    case 8: { // Peaches — walking butt-peach with arms, legs + buck teeth
-      const lp = c, lo = INK;
-      const limb = (d) => (<g><path d={d} fill="none" stroke={lo} strokeWidth="7" strokeLinecap="round" /><path d={d} fill="none" stroke={lp} strokeWidth="3.4" strokeLinecap="round" /></g>);
+    case 8: { // Peachy — butt-peach with buck teeth (no limbs)
       return (<g>
-        {limb("M30 64C22 68 20 74 22 82")}
-        {limb("M70 64C78 68 80 74 78 82")}
-        {limb("M44 80C42 88 42 92 45 96")}
-        {limb("M56 80C58 88 58 92 55 96")}
-        <ellipse cx="44" cy="97" rx="5" ry="3" fill={lp} stroke={INK} strokeWidth="2.4" />
-        <ellipse cx="56" cy="97" rx="5" ry="3" fill={lp} stroke={INK} strokeWidth="2.4" />
         <path d="M53 24c5-5 14-4 17 3-5 3-12 2-17-3Z" fill="#57C785" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
         <path d="M50 32C45 23 30 22 26 35C21 50 30 66 50 80C70 66 79 50 74 35C70 22 55 23 50 32Z" fill={c} stroke={INK} strokeWidth="4" strokeLinejoin="round" />
         <path d="M50 34C50 48 50 62 50 76" stroke="#E8895A" strokeWidth="3.4" fill="none" strokeLinecap="round" />
