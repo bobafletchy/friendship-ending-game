@@ -4,6 +4,7 @@ import { socket, emit } from "../socket.js";
 import TimerRing from "../components/Timer.jsx";
 import FloatingReactions from "../components/Reactions.jsx";
 import Avatar from "../avatars.jsx";
+import { sfx, unlockAudio, initMusic } from "../sound.js";
 
 const ROUND_LABEL = {
   targeted: "TARGETED CHAOS",
@@ -15,6 +16,9 @@ export default function HostScreen({ code }) {
   const [state, setState] = useState(null);
   const [slime, setSlime] = useState(false);
   const prevPhase = useRef("lobby");
+  const sound = useRef({ phase: "lobby", count: 0, mad: 0, gi: 0 });
+
+  useEffect(() => { initMusic(); }, []);
 
   useEffect(() => {
     const onState = (s) => setState(s);
@@ -33,6 +37,7 @@ export default function HostScreen({ code }) {
     if (!state) return;
     if (prevPhase.current === "lobby" && state.phase === "round_intro") {
       setSlime(true);
+      sfx.slime();
       const t = setTimeout(() => setSlime(false), 2600);
       prevPhase.current = state.phase;
       return () => clearTimeout(t);
@@ -40,10 +45,35 @@ export default function HostScreen({ code }) {
     prevPhase.current = state.phase;
   }, [state?.phase]);
 
+  // sound effects driven by state changes
+  useEffect(() => {
+    if (!state) return;
+    const s = sound.current;
+    const ph = state.phase;
+    if (ph !== s.phase) {
+      if (ph === "round_intro") sfx.roundStart();
+      else if (ph === "vote" || ph === "tiebreak_vote") sfx.vote();
+      else if (ph === "round_scores") sfx.score();
+      else if (ph === "gameover") sfx.win();
+      else if (ph === "tiebreak_answer") sfx.riser();
+      s.phase = ph; s.count = 0; s.mad = 0; s.gi = 0;
+    }
+    const rv = state.reveal;
+    if (ph === "reveal" && rv) {
+      if (rv.kind === "targeted") {
+        if (rv.index !== s.gi) { s.gi = rv.index; s.count = 0; }
+        if ((rv.revealedCount || 0) > s.count) { sfx.reveal(); s.count = rv.revealedCount; }
+      } else if (typeof rv.revealCursor === "number" && rv.revealCursor > s.mad) {
+        sfx.reveal(); s.mad = rv.revealCursor;
+      }
+    }
+  }, [state]);
+
   if (!state) return <div className="tv screen-center"><h2>Loading the chaos…</h2></div>;
 
-  const advance = () => emit("host_advance", {});
+  const advance = () => { unlockAudio(); emit("host_advance", {}); };
   const start = async () => {
+    unlockAudio(); // satisfies browser autoplay rules (kicks off music too)
     const res = await emit("start_game", {});
     if (res.error) alert(res.error);
   };
@@ -138,18 +168,26 @@ function Lobby({ state, onStart }) {
   );
 }
 
-// Screen-wide slime that drops down, holds, then drains away on game start.
+// Screen-wide slime that oozes down, holds, then drains away on game start.
 function SlimeDrop() {
+  const drips = [4, 12, 21, 30, 39, 48, 57, 66, 75, 84, 93];
+  const droplets = [14, 33, 52, 70, 88];
   return (
     <div className="slime-drop">
       <div className="slime-sheet">
-        <svg className="slime-edge" viewBox="0 0 100 24" preserveAspectRatio="none">
-          <path d="M0 0H100V8 Q97 18 92 9 Q88 22 82 10 Q77 20 70 9 Q64 21 56 10 Q50 19 44 9 Q38 22 30 10 Q24 20 16 9 Q10 21 6 10 Q3 16 0 8 Z" fill="#c6ff3d" />
-        </svg>
-        <span className="slime-glob g1" />
-        <span className="slime-glob g2" />
-        <span className="slime-glob g3" />
+        <div className="slime-shine" />
+        {drips.map((l, i) => (
+          <span key={i} className="slime-drip" style={{
+            left: `${l}%`,
+            "--w": `${5 + (i % 4) * 1.8}vmin`,
+            "--h": `${7 + ((i * 3) % 5) * 3}vmin`,
+            animationDelay: `${(i % 5) * 0.05}s`,
+          }} />
+        ))}
       </div>
+      {droplets.map((l, i) => (
+        <span key={i} className="slime-droplet" style={{ left: `${l}%`, animationDelay: `${0.7 + i * 0.13}s` }} />
+      ))}
     </div>
   );
 }
@@ -205,16 +243,18 @@ function Reveal({ state, onNext }) {
           <Avatar index={r.targetAvatar} size={96} />
           <h1 className="target-name" style={{ color: r.targetColor }}>{r.targetName}</h1>
         </div>
-        <p className="kicker">{r.answers.length} truth bombs · {r.index}/{r.total}</p>
+        <p className="kicker">truth bomb {Math.max(1, r.revealedCount)} of {r.totalAnswers} · target {r.index}/{r.total}</p>
         <div className="answer-cards">
-          {r.answers.map((a, i) => (
-            <div key={a.id} className="answer-card flip-in" style={{ animationDelay: `${i * 0.4}s` }}>
+          {r.answers.map((a) => (
+            <div key={a.id} className="answer-card flip-in">
               {a.promptText && <span className="ac-prompt">"{a.promptText}"</span>}
               <span className="ac-text">{a.text}</span>
             </div>
           ))}
         </div>
-        <p className="big-instruction pulse">👉 {r.targetName}, pick your favorite & guess who wrote it!</p>
+        {r.allRevealed
+          ? <p className="big-instruction pulse">👉 {r.targetName}, pick your favorite & guess who wrote it!</p>
+          : <p className="auto-hint">dropping truth bombs…</p>}
         <button className="btn btn-ghost btn-sm host-skip" onClick={onNext}>Skip →</button>
       </div>
     );

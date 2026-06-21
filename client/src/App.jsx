@@ -3,6 +3,7 @@ import { socket, emit } from "./socket.js";
 import Home from "./screens/Home.jsx";
 import HostScreen from "./screens/HostScreen.jsx";
 import PlayerScreen from "./screens/PlayerScreen.jsx";
+import { setMusic, setSfx, isMusicOn, isSfxOn, unlockAudio } from "./sound.js";
 
 export default function App() {
   // mode: 'home' | 'host' | 'player'
@@ -11,6 +12,11 @@ export default function App() {
   const [playerId, setPlayerId] = useState(null);
   const [connected, setConnected] = useState(socket.connected);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [musicOn, setMusicOn] = useState(isMusicOn());
+  const [sfxOnState, setSfxOnState] = useState(isSfxOn());
+
+  function toggleMusic() { unlockAudio(); const v = !musicOn; setMusic(v); setMusicOn(v); }
+  function toggleSfx() { const v = !sfxOnState; setSfx(v); setSfxOnState(v); }
 
   useEffect(() => {
     const onConnect = () => setConnected(true);
@@ -92,6 +98,14 @@ export default function App() {
           <div className="menu-card" onClick={(e) => e.stopPropagation()}>
             <h2 className="menu-title">Menu</h2>
             <button className="btn btn-big btn-lime" onClick={() => setMenuOpen(false)}>← Back to game</button>
+            <div className="menu-toggles">
+              <button className={`btn toggle ${musicOn ? "on" : ""}`} onClick={toggleMusic}>
+                {musicOn ? "🎵 Music: On" : "🔇 Music: Off"}
+              </button>
+              <button className={`btn toggle ${sfxOnState ? "on" : ""}`} onClick={toggleSfx}>
+                {sfxOnState ? "🔊 SFX: On" : "🔈 SFX: Off"}
+              </button>
+            </div>
             <button className="btn btn-big btn-ghost" onClick={leave}>🏠 Main menu</button>
             <p className="menu-note">
               {mode === "host"

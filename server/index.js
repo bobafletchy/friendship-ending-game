@@ -61,6 +61,8 @@ function broadcast(room) {
   } else if (room.round && room.round.groupCursor !== room._lastGroup) {
     room._lastGroup = room.round.groupCursor;
     room.groupAt = now;
+    room.revealStepAt = now;   // new target: restart the one-at-a-time rollout
+    room.pickReadyAt = 0;
   }
   // TV / host
   if (room.hostSocketId) {
@@ -297,14 +299,26 @@ setInterval(() => {
             broadcast(room);
           }
         } else {
-          // nudge along if a human Target goes AFK (bots pick on their own quickly)
           const g = game.currentGroup(room);
-          const target = g && room.players.get(g.targetId);
-          if (g && target && !r.picks.has(g.targetId) && now - (room.groupAt || now) > AUTO.pickPatience) {
-            const pick = g.answers[Math.floor(Math.random() * g.answers.length)].id;
-            const others = [...room.players.values()].filter((p) => p.id !== g.targetId);
-            game.submitPick(room, g.targetId, { bestAnswerId: pick, guessId: others[Math.floor(Math.random() * others.length)]?.id });
-            broadcast(room);
+          if (g) {
+            if (r.answerCursor < g.answers.length) {
+              // roll out this target's truth bombs one at a time
+              if (now - (room.revealStepAt || 0) > AUTO.revealStep) {
+                r.answerCursor++;
+                room.revealStepAt = now;
+                if (r.answerCursor >= g.answers.length) room.pickReadyAt = now;
+                broadcast(room);
+              }
+            } else {
+              // all shown — nudge along only if the Target goes AFK (bots pick fast)
+              const target = room.players.get(g.targetId);
+              if (target && !r.picks.has(g.targetId) && now - (room.pickReadyAt || now) > AUTO.pickPatience) {
+                const pick = g.answers[Math.floor(Math.random() * g.answers.length)].id;
+                const others = [...room.players.values()].filter((p) => p.id !== g.targetId);
+                game.submitPick(room, g.targetId, { bestAnswerId: pick, guessId: others[Math.floor(Math.random() * others.length)]?.id });
+                broadcast(room);
+              }
+            }
           }
         }
       } else if (room.phase === "vote" && now - (room.phaseAt || now) > AUTO.votePatience) {

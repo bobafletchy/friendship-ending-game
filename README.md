@@ -89,6 +89,23 @@ The server serves the built client AND the WebSocket from one port (`process.env
 
 ---
 
+## 🎵 Adding your own background music
+
+Sound effects are synthesized in-browser (no files). Background music is optional and uses a file **you** provide:
+
+1. Drop your music file here: **`client/public/music.mp3`**
+   (any browser-playable file works — `.mp3`, `.ogg`, `.m4a`. If you use a different name/format, change the filename in `client/src/sound.js` → `initMusic("/your-file.mp3")`.)
+2. That's it. On the **host (TV) screen** it auto-loops at low volume the moment you click **Start** (browsers require that first click before audio can play).
+3. Toggle it anytime from the **⚙️ menu → 🎵 Music**, along with **🔊 SFX**.
+
+- **Volume:** edit the second arg in `client/src/sound.js` → `initMusic("/music.mp3", 0.35)` (0–1).
+- **Music only plays on the host screen**, never on players' phones, so the room has one clean audio source.
+- **For the deployed site:** commit the file (`git add client/public/music.mp3`) — the build copies `public/` into the deploy, served at `/music.mp3`.
+
+> ⚖️ Use music you have the rights to (royalty-free / your own). Don't commit copyrighted tracks to a public repo.
+
+---
+
 ## Project structure
 
 ```

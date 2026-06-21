@@ -26,7 +26,7 @@ const TARGET_CAP = 5; // max people you write about per round (keeps big groups 
 
 // Truth Bombs core (write about everyone) + the signature Friendship Test twist.
 // Final round is chaos x2.
-const ROUND_PLAN = ["targeted", "madlibs", "targeted"];
+const ROUND_PLAN = ["targeted", "madlibs", "targeted", "madlibs", "targeted"];
 
 // Used only for the end-game tie-breaker: answer about YOURSELF, group votes.
 const SELF_PROMPTS = [
@@ -237,7 +237,7 @@ export class Game {
     } else if (room.phase === "reveal" && round.kind === "targeted") {
       const g = this.currentGroup(room);
       const target = g && room.players.get(g.targetId);
-      if (target && target.isBot && !round.picks.has(g.targetId)) {
+      if (target && target.isBot && this.targetedAllRevealed(room) && !round.picks.has(g.targetId)) {
         const best = rand(g.answers).id;
         const others = [...room.players.values()].filter((p) => p.id !== g.targetId);
         this.submitPick(room, g.targetId, { bestAnswerId: best, guessId: rand(others)?.id });
@@ -295,7 +295,8 @@ export class Game {
       revealGroups: [],         // targeted: [{ targetId, answers:[{id,writerId,text,promptText}] }]
       revealList: [],           // madlibs: [{id, writerId, text, promptText}]
       groupCursor: 0,
-      revealCursor: 0,
+      revealCursor: 0,          // madlibs: answers shown so far
+      answerCursor: 0,          // targeted: answers shown for the current target
       picks: new Map(),         // targetId -> { bestAnswerId, guessId }
       votes: new Map(),         // voterId -> answerId
     };
@@ -412,12 +413,16 @@ export class Game {
     }
   }
 
-  // host nudges the reveal forward (vote rounds reveal answers one-by-one)
+  // nudges the reveal forward one step (each answer appears one at a time)
   advanceReveal(room) {
     const round = room.round;
     if (round.kind === "targeted") {
-      // skip current target (e.g. disconnected) -> next group
-      this.finishGroup(room);
+      const g = this.currentGroup(room);
+      if (g && round.answerCursor < g.answers.length) {
+        round.answerCursor++; // reveal the next truth bomb
+      } else {
+        this.finishGroup(room); // all shown (and picked/skipped) -> next target
+      }
       return;
     }
     if (round.revealCursor < round.revealList.length) {
@@ -426,6 +431,11 @@ export class Game {
     if (round.revealCursor >= round.revealList.length) {
       room.phase = "vote";
     }
+  }
+
+  targetedAllRevealed(room) {
+    const g = this.currentGroup(room);
+    return !!g && room.round.answerCursor >= g.answers.length;
   }
 
   // -------------------- TARGETED PICKS -----------------------
@@ -459,6 +469,7 @@ export class Game {
   finishGroup(room) {
     const round = room.round;
     round.groupCursor++;
+    round.answerCursor = 0; // reset rollout for the next target
     if (round.groupCursor >= round.revealGroups.length) {
       room.phase = "round_scores";
     }
@@ -604,12 +615,16 @@ export class Game {
       if (round.kind === "targeted") {
         const g = this.currentGroup(room);
         if (g) {
+          const shown = g.answers.slice(0, round.answerCursor);
           base.reveal = {
             kind: "targeted",
             targetName: room.players.get(g.targetId)?.name,
             targetColor: room.players.get(g.targetId)?.color,
             targetAvatar: room.players.get(g.targetId)?.avatar,
-            answers: g.answers.map((a) => ({ id: a.id, text: a.text, promptText: a.promptText })),
+            answers: shown.map((a) => ({ id: a.id, text: a.text, promptText: a.promptText })),
+            revealedCount: round.answerCursor,
+            totalAnswers: g.answers.length,
+            allRevealed: round.answerCursor >= g.answers.length,
             index: round.groupCursor + 1,
             total: round.revealGroups.length,
           };
@@ -744,7 +759,8 @@ export class Game {
     if (room.phase === "reveal") {
       if (round.kind === "targeted") {
         const g = this.currentGroup(room);
-        if (g && g.targetId === playerId && !round.picks.has(playerId)) {
+        const allRevealed = this.targetedAllRevealed(room);
+        if (g && g.targetId === playerId && allRevealed && !round.picks.has(playerId)) {
           view.task = {
             type: "pick",
             answers: g.answers.map((a) => ({ id: a.id, text: a.text, promptText: a.promptText })),
@@ -752,9 +768,11 @@ export class Game {
               .filter((p) => p.id !== playerId)
               .map((p) => ({ id: p.id, name: p.name, color: p.color, avatar: p.avatar })),
           };
+        } else if (g && g.targetId === playerId && !allRevealed) {
+          view.task = { type: "watch", message: "Your truth bombs are dropping… 😬" };
         } else {
           const tName = g ? room.players.get(g.targetId)?.name : "";
-          view.task = { type: "watch", message: g ? `${tName} is picking…` : "Watch the screen!" };
+          view.task = { type: "watch", message: g ? `${tName} is on the hot seat…` : "Watch the screen!" };
         }
       } else {
         view.task = { type: "watch", message: "Reading answers… watch the screen!" };
