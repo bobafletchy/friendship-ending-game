@@ -60,6 +60,8 @@ export default function HostScreen({ code }) {
         {state.phase === "reveal" && <Reveal state={state} onNext={advance} />}
         {state.phase === "vote" && <Voting state={state} onNext={advance} />}
         {state.phase === "round_scores" && <RoundScores state={state} onNext={advance} />}
+        {state.phase === "tiebreak_answer" && <TiebreakAnswer state={state} />}
+        {state.phase === "tiebreak_vote" && <TiebreakVote state={state} />}
         {state.phase === "gameover" && <GameOver state={state} />}
       </div>
     </div>
@@ -174,7 +176,7 @@ function Answering({ state, onNext }) {
     <div className="answering screen-center fade-in">
       <h2 className="answer-head">✍️ Answer on your phones</h2>
       {state.setup && <p className="madlibs-setup big">"{state.setup}"</p>}
-      <TimerRing deadline={state.answerDeadline} total={80} />
+      <TimerRing deadline={state.answerDeadline} total={state.answerTotal || 80} />
       <div className="submit-track">
         {state.players.map((p) => {
           const isIn = (state.submittedIds || []).includes(p.id);
@@ -203,11 +205,12 @@ function Reveal({ state, onNext }) {
           <Avatar index={r.targetAvatar} size={96} />
           <h1 className="target-name" style={{ color: r.targetColor }}>{r.targetName}</h1>
         </div>
-        <p className="reveal-prompt">"{r.promptText}"</p>
+        <p className="kicker">{r.answers.length} truth bombs · {r.index}/{r.total}</p>
         <div className="answer-cards">
           {r.answers.map((a, i) => (
-            <div key={a.id} className="answer-card flip-in" style={{ animationDelay: `${i * 0.5}s` }}>
-              {a.text}
+            <div key={a.id} className="answer-card flip-in" style={{ animationDelay: `${i * 0.4}s` }}>
+              {a.promptText && <span className="ac-prompt">"{a.promptText}"</span>}
+              <span className="ac-text">{a.text}</span>
             </div>
           ))}
         </div>
@@ -307,6 +310,35 @@ function RoundScores({ state, onNext }) {
       <button className="btn btn-sm btn-ghost host-skip" onClick={onNext}>
         {state.isFinalRound ? "see the winner ⏭" : "next round ⏭"}
       </button>
+    </div>
+  );
+}
+
+function TiebreakAnswer({ state }) {
+  const tb = state.tiebreak || {};
+  return (
+    <div className="screen-center fade-in">
+      <p className="kicker">It's a tie!</p>
+      <h1 className="round-title">TIE-BREAKER</h1>
+      <p className="round-blurb">{(tb.names || []).join(" vs ")} — answer about <b>YOURSELF</b> on your phones 😬</p>
+      <p className="madlibs-setup big">"{tb.promptText}"</p>
+      <p className="muted">{tb.answered || 0} / {(tb.names || []).length} answered</p>
+    </div>
+  );
+}
+
+function TiebreakVote({ state }) {
+  const tb = state.tiebreak || {};
+  return (
+    <div className="voting screen-center fade-in">
+      <h2 className="answer-head">🗳️ Vote for the best self-own!</h2>
+      <p className="muted">on your phones</p>
+      <div className="vote-grid">
+        {(tb.options || []).map((o) => (
+          <div key={o.id} className="vote-tile"><span className="vt-text">{o.text}</span></div>
+        ))}
+      </div>
+      <p className="muted">{tb.voted || 0} voted</p>
     </div>
   );
 }

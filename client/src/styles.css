@@ -340,9 +340,14 @@ h1, h2, h3, h4 { font-family: "Fredoka", sans-serif; font-weight: 700; line-heig
 .answer-cards { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; max-width: 1200px; }
 .answer-card {
   background: var(--cream); color: var(--ink); border-radius: var(--r-md);
-  padding: 22px 28px; font-family: "Fredoka", sans-serif; font-weight: 600;
-  font-size: clamp(20px, 2.6vw, 34px); max-width: 520px; box-shadow: 0 10px 0 rgba(0,0,0,.4);
+  padding: 18px 24px; font-family: "Fredoka", sans-serif; font-weight: 600;
+  font-size: clamp(18px, 2.2vw, 30px); max-width: 460px; box-shadow: 0 10px 0 rgba(0,0,0,.4);
+  display: flex; flex-direction: column; gap: 6px; text-align: left;
 }
+.ac-prompt { color: var(--coral-dk); font-size: .62em; font-weight: 700; }
+.ac-text { line-height: 1.1; }
+.answer-progress { color: var(--lime); font-family: "Fredoka", sans-serif; font-weight: 700; }
+.target-head { display: flex; align-items: center; gap: 10px; font-family: "Fredoka", sans-serif; font-size: 22px; justify-content: center; }
 .big-instruction { font-family: "Fredoka", sans-serif; font-size: clamp(20px, 2.8vw, 36px); font-weight: 700; color: var(--lime); max-width: 1000px; }
 
 /* reveal - list */

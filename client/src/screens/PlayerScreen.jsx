@@ -35,6 +35,7 @@ export default function PlayerScreen({ code, playerId, onLeave }) {
         {t.type === "lobby" && <Lobby />}
         {t.type === "wait" && <Wait title={t.title} message={t.message} />}
         {t.type === "answer" && <Answer task={t} />}
+        {t.type === "answer_targeted" && <AnswerTargeted task={t} />}
         {t.type === "answer_multi" && <AnswerMulti task={t} />}
         {t.type === "submitted" && <Submitted message={t.message} />}
         {t.type === "watch" && <Watch message={t.message} />}
@@ -101,6 +102,43 @@ function Answer({ task }) {
       <div className="char-count">{text.length}/140</div>
       {err && <p className="error-msg">{err}</p>}
       <button className="btn btn-big btn-primary" onClick={submit} disabled={busy}>SUBMIT</button>
+    </div>
+  );
+}
+
+function AnswerTargeted({ task }) {
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const current = task.items.find((i) => !i.answered);
+
+  if (!current) return <Submitted message="All done! Watch the screen." />;
+
+  async function submit() {
+    if (!text.trim()) return setErr("Type something!");
+    setBusy(true);
+    const res = await emit("submit_answer", { answer: { targetId: current.targetId, text: text.trim() } });
+    setBusy(false);
+    if (res.error) return setErr(res.error);
+    setText(""); // next target renders when state updates
+  }
+
+  return (
+    <div className="fade-in answer-screen">
+      <PhoneTimer deadline={task.deadline} />
+      <p className="answer-progress">writing about… ({task.doneCount + 1} of {task.total})</p>
+      <div className="target-head">
+        <Avatar index={current.targetAvatar} size={46} />
+        <span style={{ fontWeight: 800 }}>{current.targetName}</span>
+      </div>
+      <p className="prompt-text">{current.promptText}</p>
+      <textarea className="answer-input" placeholder="Your answer…" maxLength={140}
+        value={text} autoFocus onChange={(e) => { setText(e.target.value); setErr(""); }} />
+      <div className="char-count">{text.length}/140</div>
+      {err && <p className="error-msg">{err}</p>}
+      <button className="btn btn-big btn-lime" onClick={submit} disabled={busy}>
+        {task.doneCount + 1 >= task.total ? "SUBMIT (last one!)" : "SUBMIT & NEXT →"}
+      </button>
     </div>
   );
 }
@@ -181,7 +219,8 @@ function Pick({ task }) {
         <div className="choice-list">
           {task.answers.map((a) => (
             <button key={a.id} className="choice" onClick={() => { setBest(a.id); setStep("guess"); }}>
-              {a.text}
+              {a.promptText && <span className="choice-prompt">"{a.promptText}"</span>}
+              <span>{a.text}</span>
             </button>
           ))}
         </div>

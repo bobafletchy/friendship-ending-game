@@ -179,6 +179,14 @@ io.on("connection", (socket) => {
         game.nextRound(room);
         broadcast(room);
         break;
+      case "tiebreak_answer":
+        game.startTiebreakVote(room);
+        broadcast(room);
+        break;
+      case "tiebreak_vote":
+        game.resolveTiebreak(room);
+        broadcast(room);
+        break;
       default:
         break;
     }
@@ -190,6 +198,13 @@ io.on("connection", (socket) => {
     const ctx = sockets.get(socket.id);
     const room = ctx && game.getRoom(ctx.code);
     if (!room || !ctx.playerId) return cb?.({ error: "No room." });
+    // route to the tie-breaker if that's where we are
+    if (room.phase === "tiebreak_answer") {
+      const res = game.submitTiebreakAnswer(room, ctx.playerId, typeof answer === "string" ? answer : answer?.text);
+      if (res.error) return cb?.(res);
+      cb?.({ ok: true });
+      return broadcast(room);
+    }
     const res = game.submitAnswer(room, ctx.playerId, answer);
     if (res.error) return cb?.(res);
     cb?.({ ok: true });
@@ -222,7 +237,9 @@ io.on("connection", (socket) => {
     const ctx = sockets.get(socket.id);
     const room = ctx && game.getRoom(ctx.code);
     if (!room || !ctx.playerId) return cb?.({ error: "No room." });
-    const res = game.submitVote(room, ctx.playerId, answerId);
+    const res = room.phase === "tiebreak_vote"
+      ? game.submitTiebreakVote(room, ctx.playerId, answerId)
+      : game.submitVote(room, ctx.playerId, answerId);
     if (res.error) return cb?.(res);
     cb?.({ ok: true });
     broadcast(room);
@@ -297,6 +314,12 @@ setInterval(() => {
       } else if (room.phase === "round_scores" && now - (room.phaseAt || now) > AUTO.scoresHold) {
         clearTimers(room);
         game.nextRound(room);
+        broadcast(room);
+      } else if (room.phase === "tiebreak_answer" && room.answerDeadline && now > room.answerDeadline) {
+        game.startTiebreakVote(room);
+        broadcast(room);
+      } else if (room.phase === "tiebreak_vote" && now - (room.phaseAt || now) > AUTO.votePatience) {
+        game.resolveTiebreak(room);
         broadcast(room);
       }
     } catch (e) {
