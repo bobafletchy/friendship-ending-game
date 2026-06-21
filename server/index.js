@@ -118,9 +118,8 @@ io.on("connection", (socket) => {
   socket.on("join_room", ({ code, name, playerId, avatar }, cb) => {
     const room = game.getRoom(code);
     if (!room) return cb?.({ error: "No room with that code." });
-    if (!playerId && room.phase !== "lobby") {
-      return cb?.({ error: "Game already in progress." });
-    }
+    // Fail-safe: late joiners are welcome — they reclaim their slot by name if
+    // possible, otherwise join fresh and play from the next round.
     const player = game.addPlayer(room, name, playerId, avatar);
     player.socketId = socket.id;
     sockets.set(socket.id, { code: room.code, role: "player", playerId: player.id });

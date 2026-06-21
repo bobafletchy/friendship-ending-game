@@ -128,13 +128,24 @@ export class Game {
   }
 
   addPlayer(room, name, existingId, avatar) {
-    // reconnect path
+    // reconnect path (same browser/session)
     if (existingId && room.players.has(existingId)) {
       const p = room.players.get(existingId);
       p.connected = true;
       if (name) p.name = name.slice(0, 20);
       if (Number.isInteger(avatar)) p.avatar = avatar;
       return p;
+    }
+    // fail-safe: reclaim a disconnected slot by matching name (lost session / new device)
+    const lc = (name || "").trim().toLowerCase();
+    if (lc) {
+      for (const p of room.players.values()) {
+        if (!p.connected && p.name.toLowerCase() === lc) {
+          p.connected = true;
+          if (Number.isInteger(avatar)) p.avatar = avatar;
+          return p;
+        }
+      }
     }
     const cleanName = (name || "Player").trim().slice(0, 20) || "Player";
     const color = PLAYER_COLORS[room.players.size % PLAYER_COLORS.length];
@@ -355,8 +366,15 @@ export class Game {
     return round.submissions.has(id);
   }
 
+  // who we actually wait on for "everyone's done" checks (skip dropouts; bots count)
+  liveIds(room) {
+    return [...room.players.values()].filter((p) => p.connected).map((p) => p.id);
+  }
+
   allSubmitted(room) {
-    return [...room.players.keys()].every((id) => this.writerDone(room.round, id));
+    const live = this.liveIds(room);
+    if (!live.length) return false;
+    return live.every((id) => this.writerDone(room.round, id));
   }
 
   // -------------------- BUILD REVEAL -------------------------
@@ -454,7 +472,7 @@ export class Game {
     if (!ans) return { error: "Invalid choice." };
     if (ans.writerId === voterId) return { error: "You can't vote for your own answer!" };
     round.votes.set(voterId, answerId);
-    const allVoted = [...room.players.keys()].every((pid) => round.votes.has(pid));
+    const allVoted = this.liveIds(room).every((pid) => round.votes.has(pid));
     if (allVoted) this.tallyVotes(room);
     return { allVoted };
   }
@@ -501,7 +519,8 @@ export class Game {
     const t = String(text || "").trim().slice(0, 140);
     if (!t) return { error: "Type something!" };
     tb.answers.set(playerId, t);
-    if (tb.players.every((id) => tb.answers.has(id))) this.startTiebreakVote(room);
+    const liveTied = tb.players.filter((id) => room.players.get(id)?.connected);
+    if (liveTied.every((id) => tb.answers.has(id))) this.startTiebreakVote(room);
     return { ok: true };
   }
 
@@ -520,7 +539,7 @@ export class Game {
     if (!ans) return { error: "Invalid choice." };
     if (ans.writerId === voterId) return { error: "Can't vote for yourself!" };
     tb.votes.set(voterId, answerId);
-    if ([...room.players.keys()].every((id) => tb.votes.has(id))) this.resolveTiebreak(room);
+    if (this.liveIds(room).every((id) => tb.votes.has(id))) this.resolveTiebreak(room);
     return { ok: true };
   }
 

@@ -9,8 +9,13 @@ export default function PlayerScreen({ code, playerId, onLeave }) {
   useEffect(() => {
     const onState = (s) => setState(s);
     socket.on("player:state", onState);
-    const onConnect = () => emit("join_room", { code, playerId });
+    // on (re)connect, rejoin; if the room is truly gone, bounce to the menu
+    const rejoin = () => emit("join_room", { code, playerId }).then((res) => {
+      if (res && res.error) onLeave?.();
+    });
+    const onConnect = () => rejoin();
     socket.on("connect", onConnect);
+    if (socket.connected) rejoin();
     return () => {
       socket.off("player:state", onState);
       socket.off("connect", onConnect);
