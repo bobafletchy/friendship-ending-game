@@ -237,13 +237,13 @@ h1, h2, h3, h4 { font-family: "Fredoka", sans-serif; font-weight: 700; line-heig
 .round-pill { background: var(--glass); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); border: 1.5px solid var(--glass-border); padding: 6px 16px; border-radius: 999px; box-shadow: var(--glass-shadow); }
 .chaos-tag { color: var(--coral); margin-left: 8px; font-style: normal; }
 .code-mini { color: var(--muted); letter-spacing: .15em; }
-.tv-stage { flex: 1; display: flex; padding: 16px 40px 56px; }
-.tv-stage > * { width: 100%; }
+.tv-stage { flex: 1; display: flex; justify-content: center; padding: 16px 40px 56px; }
+.tv-stage > * { width: 100%; max-width: 1180px; margin: 0 auto; }
 
 .kicker { font-family: "Fredoka", sans-serif; text-transform: uppercase; letter-spacing: .22em; color: var(--coral); font-weight: 700; font-size: clamp(14px, 1.8vw, 22px); }
 
 /* lobby */
-.lobby { display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; align-items: center; width: 100%; }
+.lobby { display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; align-items: center; width: 100%; max-width: 1080px; margin: 0 auto; }
 .join-hint { color: var(--muted); font-size: clamp(15px, 2vw, 22px); }
 .join-url { font-family: "Fredoka", sans-serif; font-size: clamp(18px, 2.4vw, 30px); font-weight: 700; margin-bottom: 18px; }
 .code-box {
@@ -251,6 +251,7 @@ h1, h2, h3, h4 { font-family: "Fredoka", sans-serif; font-weight: 700; line-heig
   background: var(--glass); border: 1.5px solid var(--glass-border); border-radius: var(--r-lg);
   backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
   padding: 20px 34px; margin-bottom: 26px; box-shadow: var(--glass-shadow);
+  width: 100%; max-width: 540px;
 }
 .code-label { color: var(--muted); letter-spacing: .3em; font-family: "Fredoka", sans-serif; font-weight: 700; }
 .code-huge {
@@ -320,7 +321,8 @@ h1, h2, h3, h4 { font-family: "Fredoka", sans-serif; font-weight: 700; line-heig
   transition: all .3s ease;
 }
 .sub-dot.in { color: #fff; opacity: 1; background: color-mix(in srgb, var(--c) 22%, var(--ink-1)); }
-.host-skip { position: fixed; bottom: 18px; right: 18px; opacity: .6; }
+.host-skip { position: fixed; bottom: 18px; right: 18px; opacity: .5; }
+.auto-hint { color: var(--muted); font-family: "Fredoka", sans-serif; font-weight: 600; font-size: clamp(14px, 1.8vw, 20px); animation: pulse 1.8s infinite; }
 
 /* timer ring */
 .timer-ring { position: relative; width: clamp(120px, 18vw, 200px); aspect-ratio: 1; }

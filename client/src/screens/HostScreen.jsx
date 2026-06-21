@@ -161,7 +161,8 @@ function RoundIntro({ state, onNext }) {
       <p className="round-blurb">{intro.blurb}</p>
       {state.setup && <p className="madlibs-setup">"{state.setup}"</p>}
       {state.chaos > 1 && <p className="chaos-banner">⚡ CHAOS MULTIPLIER: all points DOUBLED ⚡</p>}
-      <button className="btn btn-big btn-primary" onClick={onNext}>Send prompts →</button>
+      <p className="auto-hint">prompts coming to your phones…</p>
+      <button className="btn btn-sm btn-ghost host-skip" onClick={onNext}>skip ⏭</button>
     </div>
   );
 }
@@ -230,8 +231,8 @@ function Reveal({ state, onNext }) {
         <h2>Get ready…</h2>
       )}
       <p className="muted">{r.revealCursor} / {r.total}</p>
-      <button className="btn btn-big btn-primary" onClick={onNext}>
-        {r.revealCursor >= r.total ? "Start voting →" : "Next answer →"}
+      <button className="btn btn-sm btn-ghost host-skip" onClick={onNext}>
+        {r.revealCursor >= r.total ? "start voting ⏭" : "next ⏭"}
       </button>
     </div>
   );
@@ -303,8 +304,8 @@ function RoundScores({ state, onNext }) {
           </div>
         ))}
       </div>
-      <button className="btn btn-big btn-primary" onClick={onNext}>
-        {state.isFinalRound ? "See the winner →" : "Next round →"}
+      <button className="btn btn-sm btn-ghost host-skip" onClick={onNext}>
+        {state.isFinalRound ? "see the winner ⏭" : "next round ⏭"}
       </button>
     </div>
   );

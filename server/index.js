@@ -50,6 +50,18 @@ if (fs.existsSync(clientDist)) {
 // ---------------- broadcasting helpers -----------------------
 function broadcast(room) {
   if (!room) return;
+  // track when the current phase / reveal-group started (drives auto-advance)
+  const now = Date.now();
+  if (room._lastPhase !== room.phase) {
+    room._lastPhase = room.phase;
+    room.phaseAt = now;
+    room.revealStepAt = now;
+    room._lastGroup = room.round?.groupCursor;
+    room.groupAt = now;
+  } else if (room.round && room.round.groupCursor !== room._lastGroup) {
+    room._lastGroup = room.round.groupCursor;
+    room.groupAt = now;
+  }
   // TV / host
   if (room.hostSocketId) {
     io.to(room.hostSocketId).emit("host:state", { ...game.hostView(room), lanUrl: LAN_URL });
@@ -243,6 +255,55 @@ io.on("connection", (socket) => {
     }
   });
 });
+
+// Auto-advance the show so the host never has to click "next".
+// Timings (ms): how long each non-interactive phase lingers before moving on.
+const AUTO = {
+  introHold: 5500,      // round title on screen
+  revealStep: 3600,     // between answers in vote rounds
+  votePatience: 28000,  // fallback if someone never votes
+  scoresHold: 9000,     // scoreboard linger
+  pickPatience: 32000,  // fallback if a Target never picks
+};
+setInterval(() => {
+  const now = Date.now();
+  for (const room of game.rooms.values()) {
+    const r = room.round;
+    try {
+      if (room.phase === "round_intro" && now - (room.phaseAt || now) > AUTO.introHold) {
+        clearTimers(room);
+        startAnswerTimer(room); // -> answering (+broadcast)
+      } else if (room.phase === "reveal" && r) {
+        if (r.kind !== "targeted") {
+          if (now - (room.revealStepAt || 0) > AUTO.revealStep) {
+            game.advanceReveal(room);
+            room.revealStepAt = now;
+            broadcast(room);
+          }
+        } else {
+          // nudge along if a human Target goes AFK (bots pick on their own quickly)
+          const g = game.currentGroup(room);
+          const target = g && room.players.get(g.targetId);
+          if (g && target && !r.picks.has(g.targetId) && now - (room.groupAt || now) > AUTO.pickPatience) {
+            const pick = g.answers[Math.floor(Math.random() * g.answers.length)].id;
+            const others = [...room.players.values()].filter((p) => p.id !== g.targetId);
+            game.submitPick(room, g.targetId, { bestAnswerId: pick, guessId: others[Math.floor(Math.random() * others.length)]?.id });
+            broadcast(room);
+          }
+        }
+      } else if (room.phase === "vote" && now - (room.phaseAt || now) > AUTO.votePatience) {
+        game.tallyVotes(room);
+        broadcast(room);
+      } else if (room.phase === "round_scores" && now - (room.phaseAt || now) > AUTO.scoresHold) {
+        clearTimers(room);
+        game.nextRound(room);
+        broadcast(room);
+      }
+    } catch (e) {
+      console.error("autoTick error:", e.message);
+    }
+  }
+}, 1000);
 
 // Bot driver: every ~1.7s, let any bots take their pending action.
 setInterval(() => {
