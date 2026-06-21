@@ -1,0 +1,13 @@
+# Deploy "The Friendship Ending Game" as ONE free Render web service.
+# It serves the built client AND the Socket.io server from the same port.
+services:
+  - type: web
+    name: friendship-ending-game
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
