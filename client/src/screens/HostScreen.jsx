@@ -7,8 +7,7 @@ import Avatar from "../avatars.jsx";
 import { sfx, unlockAudio, initMusic } from "../sound.js";
 
 const ROUND_LABEL = {
-  targeted: "TARGETED CHAOS",
-  mixed: "MIXED PROMPT CHAOS",
+  targeted: "TRUTH BOMBS",
   madlibs: "THE FRIENDSHIP TEST",
 };
 
@@ -23,9 +22,11 @@ export default function HostScreen({ code }) {
   useEffect(() => {
     const onState = (s) => setState(s);
     socket.on("host:state", onState);
-    // re-attach host on reconnect
+    // re-attach host on (re)connect AND immediately on mount, so we never
+    // get stuck on the loading screen if we missed the first broadcast
     const onConnect = () => emit("host_reconnect", { code });
     socket.on("connect", onConnect);
+    if (socket.connected) emit("host_reconnect", { code });
     return () => {
       socket.off("host:state", onState);
       socket.off("connect", onConnect);
@@ -236,25 +237,33 @@ function Reveal({ state, onNext }) {
   if (!r) return <div className="screen-center"><h2>…</h2></div>;
 
   if (r.kind === "targeted") {
+    const latest = r.answers[r.answers.length - 1];
     return (
       <div className="reveal-targeted screen-center fade-in">
-        <p className="kicker">Answers about</p>
-        <div className="target-id pop-in">
-          <Avatar index={r.targetAvatar} size={96} />
-          <h1 className="target-name" style={{ color: r.targetColor }}>{r.targetName}</h1>
+        <div className="reveal-target-row pop-in">
+          <Avatar index={r.targetAvatar} size={56} />
+          <span className="rt-label">answers about <b style={{ color: r.targetColor }}>{r.targetName}</b></span>
         </div>
         <p className="kicker">truth bomb {Math.max(1, r.revealedCount)} of {r.totalAnswers} · target {r.index}/{r.total}</p>
-        <div className="answer-cards">
-          {r.answers.map((a) => (
-            <div key={a.id} className="answer-card flip-in">
-              {a.promptText && <span className="ac-prompt">"{a.promptText}"</span>}
-              <span className="ac-text">{a.text}</span>
+
+        {!r.allRevealed && latest ? (
+          <div className="bomb-card flip-in" key={latest.id}>
+            {latest.promptText && <span className="bomb-prompt">"{latest.promptText}"</span>}
+            <span className="bomb-answer">{latest.text}</span>
+          </div>
+        ) : (
+          <>
+            <div className="answer-cards">
+              {r.answers.map((a) => (
+                <div key={a.id} className="answer-card flip-in">
+                  {a.promptText && <span className="ac-prompt">"{a.promptText}"</span>}
+                  <span className="ac-text">{a.text}</span>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-        {r.allRevealed
-          ? <p className="big-instruction pulse">👉 {r.targetName}, pick your favorite & guess who wrote it!</p>
-          : <p className="auto-hint">dropping truth bombs…</p>}
+            <p className="big-instruction pulse">👉 {r.targetName}, pick your favorite & guess who wrote it!</p>
+          </>
+        )}
         <button className="btn btn-ghost btn-sm host-skip" onClick={onNext}>Skip →</button>
       </div>
     );

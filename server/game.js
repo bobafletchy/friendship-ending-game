@@ -127,13 +127,24 @@ export class Game {
     return room;
   }
 
+  // No two players share a mascot. Returns the requested one if free,
+  // else the first free mascot (only repeats if a room somehow has 14+).
+  pickAvatar(room, requested, exceptId) {
+    const taken = new Set(
+      [...room.players.values()].filter((p) => p.id !== exceptId).map((p) => p.avatar)
+    );
+    if (Number.isInteger(requested) && !taken.has(requested)) return requested;
+    for (let i = 0; i < 14; i++) if (!taken.has(i)) return i;
+    return Number.isInteger(requested) ? requested : 0;
+  }
+
   addPlayer(room, name, existingId, avatar) {
     // reconnect path (same browser/session)
     if (existingId && room.players.has(existingId)) {
       const p = room.players.get(existingId);
       p.connected = true;
       if (name) p.name = name.slice(0, 20);
-      if (Number.isInteger(avatar)) p.avatar = avatar;
+      if (Number.isInteger(avatar)) p.avatar = this.pickAvatar(room, avatar, p.id);
       return p;
     }
     // fail-safe: reclaim a disconnected slot by matching name (lost session / new device)
@@ -142,7 +153,7 @@ export class Game {
       for (const p of room.players.values()) {
         if (!p.connected && p.name.toLowerCase() === lc) {
           p.connected = true;
-          if (Number.isInteger(avatar)) p.avatar = avatar;
+          if (Number.isInteger(avatar)) p.avatar = this.pickAvatar(room, avatar, p.id);
           return p;
         }
       }
@@ -155,7 +166,7 @@ export class Game {
       score: 0,
       connected: true,
       color,
-      avatar: Number.isInteger(avatar) ? avatar : room.players.size % 14,
+      avatar: this.pickAvatar(room, avatar, null),
       socketId: null,
     };
     room.players.set(player.id, player);
@@ -164,7 +175,6 @@ export class Game {
 
   addBots(room, n = 3) {
     if (room.phase !== "lobby") return { error: "Can only add bots in the lobby." };
-    const avatars = makeDeck([...Array(14).keys()]);
     for (let i = 0; i < n; i++) {
       const id = newId("bot");
       const idx = (room._botCount || 0);
@@ -174,7 +184,7 @@ export class Game {
         score: 0,
         connected: true,
         color: PLAYER_COLORS[room.players.size % PLAYER_COLORS.length],
-        avatar: avatars[idx % avatars.length],
+        avatar: this.pickAvatar(room, null, null), // unique mascot
         socketId: null,
         isBot: true,
       });
@@ -399,6 +409,7 @@ export class Game {
         .filter(([, answers]) => answers.length > 0)
         .map(([targetId, answers]) => ({ targetId, answers: makeDeck(answers) }));
       round.groupCursor = 0;
+      round.answerCursor = 1; // show the first truth bomb immediately
       room.phase = "reveal";
     } else {
       // madlibs: flatten twisted sentences into a reveal list for group voting
@@ -469,7 +480,7 @@ export class Game {
   finishGroup(room) {
     const round = room.round;
     round.groupCursor++;
-    round.answerCursor = 0; // reset rollout for the next target
+    round.answerCursor = 1; // next target shows its first bomb immediately
     if (round.groupCursor >= round.revealGroups.length) {
       room.phase = "round_scores";
     }
