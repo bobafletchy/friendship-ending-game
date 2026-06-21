@@ -89,20 +89,26 @@ The server serves the built client AND the WebSocket from one port (`process.env
 
 ---
 
-## 🎵 Adding your own background music
+## 🎵 Audio: phase-based soundtrack + SFX
 
-Sound effects are synthesized in-browser (no files). Background music is optional and uses a file **you** provide:
+The host (TV) screen plays a **looping music track that changes with the game phase**, plus a slime sound effect on game start. Subtle synth accents (answer blip, vote, points) sit under the music. **Audio only plays on the host screen** — never on players' phones — so the room has one clean source.
 
-1. Drop your music file here: **`client/public/music.mp3`**
-   (any browser-playable file works — `.mp3`, `.ogg`, `.m4a`. If you use a different name/format, change the filename in `client/src/sound.js` → `initMusic("/your-file.mp3")`.)
-2. That's it. On the **host (TV) screen** it auto-loops at low volume the moment you click **Start** (browsers require that first click before audio can play).
-3. Toggle it anytime from the **⚙️ menu → 🎵 Music**, along with **🔊 SFX**.
+Tracks live in **`client/public/`** with these exact names (drop in your own to replace them):
 
-- **Volume:** edit the second arg in `client/src/sound.js` → `initMusic("/music.mp3", 0.35)` (0–1).
-- **Music only plays on the host screen**, never on players' phones, so the room has one clean audio source.
-- **For the deployed site:** commit the file (`git add client/public/music.mp3`) — the build copies `public/` into the deploy, served at `/music.mp3`.
+| File | Plays during |
+|------|--------------|
+| `music-menu.mp3`   | lobby + round intros |
+| `music-answer.mp3` | writing/answering phase |
+| `music-reveal.mp3` | reveals, voting, scoreboard, winner |
+| `sfx-slime.mp3`    | the game-start slime drop (one-shot) |
 
-> ⚖️ Use music you have the rights to (royalty-free / your own). Don't commit copyrighted tracks to a public repo.
+- Any browser-playable format works (`.mp3`/`.ogg`/`.m4a`) — keep the filenames, or edit the `TRACKS` map / `playSlime()` path in `client/src/sound.js`.
+- **Per-track volume:** the `vol` values in the `TRACKS` map in `client/src/sound.js` (0–1).
+- Browsers block audio until a click — it kicks in on the first interaction with the host screen.
+- Toggle anytime from the **⚙️ menu → 🎵 Music / 🔊 SFX**.
+- **Deploying:** the files are committed in `client/public/` and the build copies them into the deploy automatically.
+
+> ⚖️ Use music you have the rights to. This repo is public — swapping in copyrighted tracks publicly is your call.
 
 ---
 

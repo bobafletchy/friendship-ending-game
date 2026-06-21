@@ -4,7 +4,16 @@ import { socket, emit } from "../socket.js";
 import TimerRing from "../components/Timer.jsx";
 import FloatingReactions from "../components/Reactions.jsx";
 import Avatar from "../avatars.jsx";
-import { sfx, unlockAudio, initMusic } from "../sound.js";
+import { sfx, unlockAudio, initMusic, setScene, playSlime } from "../sound.js";
+
+// which looping track plays for each phase
+function sceneFor(ph) {
+  switch (ph) {
+    case "answering": case "tiebreak_answer": return "answer";
+    case "reveal": case "vote": case "round_scores": case "tiebreak_vote": case "gameover": return "reveal";
+    default: return "menu"; // lobby, round_intro
+  }
+}
 
 const ROUND_LABEL = {
   targeted: "TRUTH BOMBS",
@@ -15,9 +24,15 @@ export default function HostScreen({ code }) {
   const [state, setState] = useState(null);
   const [slime, setSlime] = useState(false);
   const prevPhase = useRef("lobby");
-  const sound = useRef({ phase: "lobby", count: 0, mad: 0, gi: 0 });
+  const sound = useRef({ phase: null, count: 0, mad: 0, gi: 0 });
 
-  useEffect(() => { initMusic(); }, []);
+  // preload music + unlock audio on the very first interaction (autoplay rules)
+  useEffect(() => {
+    initMusic();
+    const onFirst = () => { unlockAudio(); window.removeEventListener("pointerdown", onFirst); };
+    window.addEventListener("pointerdown", onFirst);
+    return () => window.removeEventListener("pointerdown", onFirst);
+  }, []);
 
   useEffect(() => {
     const onState = (s) => setState(s);
@@ -38,7 +53,7 @@ export default function HostScreen({ code }) {
     if (!state) return;
     if (prevPhase.current === "lobby" && state.phase === "round_intro") {
       setSlime(true);
-      sfx.slime();
+      playSlime();
       const t = setTimeout(() => setSlime(false), 2600);
       prevPhase.current = state.phase;
       return () => clearTimeout(t);
@@ -52,11 +67,9 @@ export default function HostScreen({ code }) {
     const s = sound.current;
     const ph = state.phase;
     if (ph !== s.phase) {
-      if (ph === "round_intro") sfx.roundStart();
-      else if (ph === "vote" || ph === "tiebreak_vote") sfx.vote();
+      setScene(sceneFor(ph)); // crossfade the background track to match the phase
+      if (ph === "vote" || ph === "tiebreak_vote") sfx.vote();
       else if (ph === "round_scores") sfx.score();
-      else if (ph === "gameover") sfx.win();
-      else if (ph === "tiebreak_answer") sfx.riser();
       s.phase = ph; s.count = 0; s.mad = 0; s.gi = 0;
     }
     const rv = state.reveal;
