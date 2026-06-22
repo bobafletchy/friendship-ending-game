@@ -10,14 +10,13 @@ Friendships end. No login, no install, instant play.
 
 ## How it plays
 
-1. One person opens the site on a **laptop/TV** and clicks **Host on this screen**.
-2. Everyone else opens the site on their **phone**, taps **Join**, enters the 4-letter **room code** + a name.
-3. Host hits **Start** (needs 3+ players). The TV is the stage; phones are controllers.
-4. 6 rounds rotate through three modes:
-   - **Targeted Chaos** – answer a prompt about a specific friend. They pick the best answer and guess who wrote it.
-   - **Mixed Prompt Chaos** – everyone gets a different prompt; the room votes funniest.
+1. One person opens the site on a **laptop/TV** and clicks **Host on this screen** (display only).
+2. Everyone else opens the site on their **phone**, taps **Join**, picks/builds a character + name. The **first to join is the host 👑** (only they can start/restart).
+3. The host starts from their phone (needs 3+ players). The TV is the stage; phones are controllers.
+4. 5 rounds alternate two modes:
+   - **The Hot Seat** – everyone writes an anonymous answer about each other player. Each person's answers are revealed one-at-a-time on the TV (question first, then the answer), then they pick a favorite and guess who wrote it.
    - **The Friendship Test** – fill in a wholesome-looking mad-lib… then watch it get twisted on the big screen. Room votes funniest.
-5. Final round has a **Chaos ×2** multiplier. Highest score wins. 👑
+5. Final round has a **Chaos ×2** multiplier. Highest score wins. If it's a tie, tied players answer about *themselves* and the room votes. 👑
 
 Scoring: best-answer pick = +1 to the writer · correct author guess = +1 to the guesser · vote rounds = +1 per vote received. (All doubled in the chaos round.)
 

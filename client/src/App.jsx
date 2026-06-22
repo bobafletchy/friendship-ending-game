@@ -123,7 +123,7 @@ export default function App() {
         <span className="blob b3" />
         <span className="blob b4" />
       </div>
-      <UiSlime />
+      {mode !== "player" && <UiSlime />}
       {!connected && <div className="conn-banner">Reconnecting… (you'll be put right back in)</div>}
 
       <button className="cog-btn" title="Settings (Esc)" onClick={() => setMenuOpen(true)}>⚙️</button>

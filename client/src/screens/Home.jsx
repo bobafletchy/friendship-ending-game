@@ -9,7 +9,7 @@ const HOW_TO = [
   { n: "1", title: "GRAB A SCREEN", body: "One device hosts on the TV. Everyone else joins from their phone." },
   { n: "2", title: "WRITE CHAOS", body: "Answer punchy prompts about your friends. Anonymously, obviously." },
   { n: "3", title: "REVEAL & VOTE", body: "Answers hit the big screen. Pick favorites. Guess the writer." },
-  { n: "4", title: "END A FRIENDSHIP", body: "Rack up points across 6 rounds. Last round scores DOUBLE." },
+  { n: "4", title: "END A FRIENDSHIP", body: "Rack up points across 5 rounds. Last round scores DOUBLE." },
 ];
 
 export default function Home({ onHost, onJoin }) {
