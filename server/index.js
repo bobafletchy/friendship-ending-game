@@ -31,7 +31,12 @@ const LAN_URL = `http://${lanIP()}:${PORT}`;
 
 const app = express();
 const httpServer = createServer(app);
-const io = new Server(httpServer, { cors: { origin: "*" } });
+const io = new Server(httpServer, {
+  cors: { origin: "*" },
+  // be lenient with phones that lock/background so they aren't dropped
+  pingInterval: 25000,
+  pingTimeout: 60000,
+});
 
 const game = new Game();
 
@@ -127,28 +132,45 @@ io.on("connection", (socket) => {
     const player = game.addPlayer(room, name, playerId, avatar);
     player.socketId = socket.id;
     sockets.set(socket.id, { code: room.code, role: "player", playerId: player.id });
-    cb?.({ ok: true, playerId: player.id, code: room.code, name: player.name, avatar: player.avatar });
+    cb?.({ ok: true, playerId: player.id, code: room.code, name: player.name, avatar: player.avatar, isLeader: player.isLeader });
     broadcast(room);
   });
 
-  // ---- HOST adds test bots ----
-  socket.on("add_bots", ({ count } = {}, cb) => {
+  // only the leader (first player to join) may run the game
+  const leaderRoom = () => {
     const ctx = sockets.get(socket.id);
     const room = ctx && game.getRoom(ctx.code);
-    if (!room) return cb?.({ error: "No room." });
+    if (!room) return { error: "No room." };
+    if (!room.players.get(ctx.playerId)?.isLeader) return { error: "Only the leader can do that." };
+    return { room };
+  };
+
+  // ---- LEADER adds test bots ----
+  socket.on("add_bots", ({ count } = {}, cb) => {
+    const { room, error } = leaderRoom();
+    if (error) return cb?.({ error });
     const res = game.addBots(room, Math.min(6, Math.max(1, count || 3)));
     if (res.error) return cb?.(res);
     cb?.({ ok: true });
     broadcast(room);
   });
 
-  // ---- HOST starts the game ----
+  // ---- LEADER starts the game ----
   socket.on("start_game", (_d, cb) => {
-    const ctx = sockets.get(socket.id);
-    const room = ctx && game.getRoom(ctx.code);
-    if (!room) return cb?.({ error: "No room." });
+    const { room, error } = leaderRoom();
+    if (error) return cb?.({ error });
     const res = game.startGame(room);
     if (res.error) return cb?.(res);
+    cb?.({ ok: true });
+    broadcast(room);
+  });
+
+  // ---- LEADER restarts (back to lobby, scores wiped, players kept) ----
+  socket.on("restart_game", (_d, cb) => {
+    const { room, error } = leaderRoom();
+    if (error) return cb?.({ error });
+    clearTimers(room);
+    game.restartGame(room);
     cb?.({ ok: true });
     broadcast(room);
   });
@@ -271,6 +293,7 @@ io.on("connection", (socket) => {
         p.connected = false;
         p.socketId = null;
       }
+      game.reassignLeader(room); // hand the crown on if the leader dropped
       broadcast(room);
     }
   });
@@ -359,16 +382,21 @@ setInterval(() => {
   }
 }, 1700);
 
-// Reap empty/idle rooms every 10 minutes.
+// Reap rooms only after they've been fully empty for a grace period, so a
+// brief all-disconnect (everyone's phone backgrounds at once) never nukes a game.
+const REAP_GRACE = 10 * 60 * 1000;
 setInterval(() => {
+  const now = Date.now();
   for (const [code, room] of game.rooms) {
     const anyConnected = room.hostSocketId || [...room.players.values()].some((p) => p.connected);
-    if (!anyConnected) {
+    if (anyConnected) { room.emptySince = null; continue; }
+    if (!room.emptySince) { room.emptySince = now; continue; }
+    if (now - room.emptySince > REAP_GRACE) {
       clearTimers(room);
       game.rooms.delete(code);
     }
   }
-}, 10 * 60 * 1000);
+}, 60 * 1000);
 
 httpServer.listen(PORT, () => {
   console.log(`\n  🔥 The Friendship Ending Game`);

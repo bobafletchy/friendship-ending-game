@@ -151,6 +151,43 @@ h1, h2, h3, h4 { font-family: "Fredoka", sans-serif; font-weight: 700; line-heig
 .menu-card .btn { width: 100%; }
 .menu-note { color: var(--muted); font-size: 13px; font-weight: 600; }
 
+/* leader crown */
+.chip-av, .me-av { position: relative; display: inline-flex; }
+.crown { position: absolute; top: -9px; right: -7px; font-size: 16px; pointer-events: none;
+  transform-origin: center bottom; animation: crownBob 1.6s ease-in-out infinite;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,.45)); }
+@keyframes crownBob { 0%,100% { transform: translateY(0) rotate(-9deg); } 50% { transform: translateY(-3px) rotate(9deg); } }
+@media (prefers-reduced-motion: reduce) { .crown { animation: none; } }
+.lobby-status { font-family: "Fredoka", sans-serif; font-weight: 700; color: var(--cream); font-size: clamp(16px, 2vw, 24px); }
+
+/* "make your own" rail button + character builder */
+.avatar-pick.make-own { display: flex; align-items: center; justify-content: center; font-size: 22px; min-width: 52px; min-height: 52px; }
+.cb-overlay {
+  position: fixed; inset: 0; z-index: 600; display: flex; align-items: flex-end; justify-content: center;
+  background: rgba(8, 8, 12, .6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  animation: fadeIn .2s both;
+}
+.cb-card {
+  width: min(460px, 100%); max-height: 92vh; overflow-y: auto;
+  background: var(--glass); border: 1.5px solid var(--glass-border); border-radius: 26px 26px 0 0;
+  backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); box-shadow: var(--glass-shadow);
+  padding: 18px 16px 26px; display: flex; flex-direction: column; gap: 12px;
+}
+.cb-head { display: flex; align-items: center; gap: 12px; }
+.cb-preview { background: rgba(0,0,0,.28); border: 1.5px solid var(--glass-border); border-radius: 50%; padding: 6px; }
+.cb-title { font-size: 22px; color: var(--lime); }
+.cb-x { margin-left: auto; background: var(--ink-2); border: 2px solid var(--line-2); color: var(--text);
+  width: 36px; height: 36px; border-radius: 50%; font-size: 15px; cursor: pointer; }
+.cb-row { display: flex; flex-direction: column; gap: 6px; }
+.cb-label { font-family: "Fredoka", sans-serif; font-weight: 700; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
+.cb-opts { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+.cb-opt { flex: 0 0 auto; background: rgba(0,0,0,.25); border: 2px solid transparent; border-radius: 12px; padding: 3px; cursor: pointer; }
+.cb-opt.on { border-color: var(--lime); background: rgba(198,255,61,.12); }
+.cb-swatch { flex: 0 0 auto; width: 34px; height: 34px; border-radius: 50%; border: 3px solid transparent; cursor: pointer; }
+.cb-swatch.on { border-color: #fff; box-shadow: 0 0 0 2px var(--lime); }
+.cb-actions { display: flex; gap: 10px; margin-top: 6px; }
+.cb-actions .btn { flex: 1; }
+
 /* connection banner */
 .conn-banner {
   position: fixed; top: 0; left: 0; right: 0; z-index: 999;

@@ -87,11 +87,6 @@ export default function HostScreen({ code }) {
   if (!state) return <div className="tv screen-center"><h2>Loading the chaos…</h2></div>;
 
   const advance = () => { unlockAudio(); emit("host_advance", {}); };
-  const start = async () => {
-    unlockAudio(); // satisfies browser autoplay rules (kicks off music too)
-    const res = await emit("start_game", {});
-    if (res.error) alert(res.error);
-  };
 
   return (
     <div className="tv">
@@ -99,7 +94,7 @@ export default function HostScreen({ code }) {
       <FloatingReactions />
       <TopBar state={state} />
       <div className="tv-stage">
-        {state.phase === "lobby" && <Lobby state={state} onStart={start} />}
+        {state.phase === "lobby" && <Lobby state={state} />}
         {state.phase === "round_intro" && <RoundIntro state={state} onNext={advance} />}
         {state.phase === "answering" && <Answering state={state} onNext={advance} />}
         {state.phase === "reveal" && <Reveal state={state} onNext={advance} />}
@@ -129,8 +124,9 @@ function TopBar({ state }) {
   );
 }
 
-function Lobby({ state, onStart }) {
+function Lobby({ state }) {
   const enough = state.players.length >= state.minPlayers;
+  const leader = state.players.find((p) => p.isLeader);
   const [qr, setQr] = useState("");
 
   const isLocal = /localhost|127\.0\.0\.1/.test(window.location.host);
@@ -153,12 +149,9 @@ function Lobby({ state, onStart }) {
           <span className="code-huge">{state.code}</span>
         </div>
         <div className="lobby-actions">
-          <button className="btn btn-big btn-lime" onClick={onStart} disabled={!enough}>
-            {enough ? "START THE GAME ▶" : `Need ${state.minPlayers - state.players.length} more…`}
-          </button>
-          <button className="btn btn-ghost btn-sm" onClick={() => emit("add_bots", { count: 3 })}>
-            🤖 Add 3 test bots
-          </button>
+          {leader
+            ? <p className="lobby-status">👑 <b style={{ color: leader.color }}>{leader.name}</b> {enough ? "can start on their phone" : `— need ${state.minPlayers - state.players.length} more player${state.minPlayers - state.players.length === 1 ? "" : "s"}`}</p>
+            : <p className="lobby-status">First to join becomes the host 👑</p>}
         </div>
       </div>
       <div className="lobby-right">
@@ -172,7 +165,10 @@ function Lobby({ state, onStart }) {
         <div className="player-chips">
           {state.players.map((p) => (
             <span key={p.id} className="player-chip pop-in" style={{ "--c": p.color }}>
-              <Avatar index={p.avatar} size={36} />
+              <span className="chip-av">
+                <Avatar index={p.avatar} size={36} />
+                {p.isLeader && <span className="crown crown-sm">👑</span>}
+              </span>
               {p.name}{p.isBot && " 🤖"}
             </span>
           ))}
@@ -365,7 +361,7 @@ function RoundScores({ state, onNext }) {
         {board.map((p, i) => (
           <div key={p.id} className="sb-row" style={{ animationDelay: `${i * 0.08}s` }}>
             <span className="sb-rank">{i + 1}</span>
-            <Avatar index={p.avatar} size={40} />
+            <span className="chip-av"><Avatar index={p.avatar} size={40} />{p.isLeader && <span className="crown crown-sm">👑</span>}</span>
             <span className="sb-name" style={{ color: p.color }}>{p.name}</span>
             <span className="sb-bar"><span className="sb-fill" style={{ width: `${(p.score / max) * 100}%`, background: p.color }} /></span>
             <span className="sb-score">{p.score}</span>

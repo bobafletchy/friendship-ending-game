@@ -19,6 +19,8 @@ export const AVATARS = [
   { name: "Imp",    color: "#FF6B6B" }, // 13 little devil
 ];
 export const AVATAR_COUNT = AVATARS.length;
+// Pickable presets — Ghoul (4), Drippy (11), Imp (13) removed from selection.
+export const AVATAR_PICKS = [0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 12];
 
 const INK = "#0E0E12";
 const S = { stroke: INK, strokeWidth: 4, strokeLinejoin: "round", strokeLinecap: "round", fill: "none" };
@@ -124,15 +126,15 @@ function Critter({ index, c }) {
         <circle cx="31" cy="54" r="3.2" fill="#FF6F91" opacity=".7" /><circle cx="69" cy="54" r="3.2" fill="#FF6F91" opacity=".7" />
       </g>);
     }
-    case 9: // Tako — taco
+    case 9: // Tako — cute taco
       return (<g>
-        <path d="M16 66a34 32 0 0 1 68 0Z" fill={c} stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-        <path d="M20 64c10-10 50-10 60 0" stroke="#57C785" strokeWidth="6" fill="none" strokeLinecap="round" />
-        <circle cx="34" cy="60" r="4.5" fill="#FF5C49" stroke={INK} strokeWidth="2" />
-        <circle cx="52" cy="57" r="4.5" fill="#FF5C49" stroke={INK} strokeWidth="2" />
-        <circle cx="68" cy="60" r="4.5" fill="#FF5C49" stroke={INK} strokeWidth="2" />
-        <Eye cx="40" cy="73" r="5.5" pr="2.6" /><Eye cx="60" cy="73" r="5.5" pr="2.6" />
-        <path d="M45 82c3 2 7 2 10 0" {...S2} />
+        <path d="M18 70a32 30 0 0 1 64 0Z" fill={c} stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+        <path d="M22 68c9-9 47-9 56 0" stroke="#6BD66B" strokeWidth="8" fill="none" strokeLinecap="round" />
+        <circle cx="35" cy="63" r="3.6" fill="#FF6B5C" stroke={INK} strokeWidth="2" />
+        <circle cx="65" cy="63" r="3.6" fill="#FF6B5C" stroke={INK} strokeWidth="2" />
+        <Eye cx="40" cy="74" r="7.5" pr="3.4" /><Eye cx="60" cy="74" r="7.5" pr="3.4" />
+        <circle cx="30" cy="82" r="3.6" fill="#FF8FA3" opacity=".8" /><circle cx="70" cy="82" r="3.6" fill="#FF8FA3" opacity=".8" />
+        <path d="M45 85c2.5 2.5 7.5 2.5 10 0" {...S2} />
       </g>);
     case 10: // Bones — skull
       return (<g>
@@ -173,9 +175,73 @@ function Critter({ index, c }) {
   }
 }
 
+// ================= BUILD-YOUR-OWN AVATAR =================
+// A custom avatar is { custom:true, c,s,e,m,x } (indexes into the arrays below).
+export const COLORS = [
+  "#FF5C49", "#FF8A3D", "#FFD23F", "#8CE65C", "#3DDC97", "#5EEAD4",
+  "#45C4FF", "#7FB0FF", "#9B6BFF", "#FF7AD5", "#FF9AA2", "#EDEBE2",
+];
+const bodyOf = (d, c) => <path d={d} fill={c} stroke={INK} strokeWidth="4" strokeLinejoin="round" />;
+export const SHAPES = [
+  (c) => bodyOf("M50 16c20 0 32 14 32 34S70 86 50 86 18 70 18 50 30 16 50 16Z", c),                         // round blob
+  (c) => bodyOf("M30 22h40a10 10 0 0 1 10 10v36a10 10 0 0 1-10 10H30a10 10 0 0 1-10-10V32a10 10 0 0 1 10-10Z", c), // rounded square
+  (c) => bodyOf("M50 13c16 0 24 17 24 37S66 88 50 88 26 70 26 50 34 13 50 13Z", c),                          // tall egg
+  (c) => bodyOf("M50 14c12 0 16 8 24 12s12 14 8 24 0 18-10 22-18 4-30 2-18-2-22-12-2-16 2-26 6-12 14-16 12-2 22-2Z", c), // bumpy
+  (c) => bodyOf("M50 12l10 20 22 3-16 16 4 22-20-11-20 11 4-22-16-16 22-3Z", c),                             // star
+  (c) => bodyOf("M22 52c0-22 12-36 28-36s28 14 28 36c0 14-12 20-28 20S22 66 22 52Z", c),                     // wide
+];
+export const SHAPE_COUNT = SHAPES.length;
+export const EYES = [
+  () => (<g key="e0"><circle cx="40" cy="46" r="4.5" fill={INK} /><circle cx="60" cy="46" r="4.5" fill={INK} /></g>),
+  () => (<g key="e1"><Eye cx="40" cy="46" r="8" /><Eye cx="60" cy="46" r="8" /></g>),
+  () => (<g key="e2"><path d="M34 46c3 3 9 3 12 0M54 46c3 3 9 3 12 0" {...S2} /></g>),
+  () => (<g key="e3"><circle cx="40" cy="46" r="9" fill="#fff" stroke={INK} strokeWidth="2.6" /><circle className="av-pup" cx="42" cy="48" r="4.5" fill={INK} /><circle cx="60" cy="46" r="9" fill="#fff" stroke={INK} strokeWidth="2.6" /><circle className="av-pup" cx="58" cy="49" r="4.5" fill={INK} /></g>),
+  () => (<g key="e4"><path d="M32 38l13 5M68 38l-13 5" {...S2} /><Eye cx="40" cy="49" r="6" /><Eye cx="60" cy="49" r="6" /></g>),
+  () => (<g key="e5"><circle cx="50" cy="46" r="12" fill="#fff" stroke={INK} strokeWidth="3" /><circle className="av-pup" cx="51" cy="47" r="5" fill={INK} /></g>),
+  () => (<g key="e6"><path d="M35 41l9 9M44 41l-9 9M56 41l9 9M65 41l-9 9" {...S2} /></g>),
+  () => (<g key="e7"><circle cx="40" cy="46" r="7" fill="none" {...S2} /><circle cx="40" cy="46" r="2.6" fill="none" {...S2} /><circle cx="60" cy="46" r="7" fill="none" {...S2} /><circle cx="60" cy="46" r="2.6" fill="none" {...S2} /></g>),
+  () => (<g key="e8"><path d="M40 51l-6-6a3.6 3.6 0 0 1 6-3 3.6 3.6 0 0 1 6 3Z" fill="#FF5C49" stroke={INK} strokeWidth="2" /><path d="M60 51l-6-6a3.6 3.6 0 0 1 6-3 3.6 3.6 0 0 1 6 3Z" fill="#FF5C49" stroke={INK} strokeWidth="2" /></g>),
+];
+export const EYE_COUNT = EYES.length;
+export const MOUTHS = [
+  () => <path key="m0" d="M42 64c4 5 12 5 16 0" {...S2} />,
+  () => (<g key="m1"><path d="M40 62h20v5a4 4 0 0 1-4 4H44a4 4 0 0 1-4-4Z" fill="#fff" stroke={INK} strokeWidth="2.6" /><line x1="50" y1="62" x2="50" y2="71" stroke={INK} strokeWidth="2" /></g>),
+  () => (<g key="m2"><path d="M42 62c2 8 14 8 16 0Z" fill={INK} /><path d="M46 68c1 4 7 4 8 0Z" fill="#FF5C49" /></g>),
+  () => <path key="m3" d="M42 70c4-5 12-5 16 0" {...S2} />,
+  () => <path key="m4" d="M39 65c3-4 5 4 8 0s5-4 8 0 5 4 5 0" {...S2} />,
+  () => (<g key="m5"><path d="M40 62c5 6 15 6 20 0Z" fill={INK} /><path d="M45 62l2 6 3-6M53 62l2 6 3-6" fill="#fff" /></g>),
+  () => <path key="m6" d="M40 64l5 5 5-5 5 5 5-5" {...S2} />,
+  () => <circle key="m7" cx="50" cy="66" r="5" fill={INK} />,
+];
+export const MOUTH_COUNT = MOUTHS.length;
+export const EXTRAS = [
+  () => null,
+  () => (<g key="x1"><path d="M40 18l-5-10M60 18l5-10" {...S2} /><circle cx="34" cy="7" r="3.6" fill="#FF5C49" stroke={INK} strokeWidth="2" /><circle cx="66" cy="7" r="3.6" fill="#FF5C49" stroke={INK} strokeWidth="2" /></g>),
+  () => <path key="x2" d="M30 22 23 8l15 9M70 22 77 8 62 17" fill="#FFD23F" stroke={INK} strokeWidth="3" strokeLinejoin="round" />,
+  () => <path key="x3" d="M38 59c4 3 20 3 24 0" stroke="#6b4423" strokeWidth="5" fill="none" strokeLinecap="round" />,
+  () => (<g key="x4"><circle cx="50" cy="22" r="6" fill="#fff" stroke={INK} strokeWidth="2.6" /><circle className="av-pup" cx="50" cy="23" r="2.6" fill={INK} /></g>),
+  () => <ellipse key="x5" cx="50" cy="9" rx="14" ry="4" fill="none" stroke="#FFD23F" strokeWidth="3" />,
+  () => (<g key="x6"><rect x="37" y="4" width="26" height="11" rx="2" fill={INK} /><rect x="31" y="15" width="38" height="4" rx="2" fill={INK} /></g>),
+];
+export const EXTRA_COUNT = EXTRAS.length;
+
+function CustomCritter({ cfg }) {
+  const c = COLORS[(cfg.c | 0) % COLORS.length];
+  return (
+    <g>
+      {SHAPES[(cfg.s | 0) % SHAPE_COUNT](c)}
+      {EYES[(cfg.e | 0) % EYE_COUNT]()}
+      {MOUTHS[(cfg.m | 0) % MOUTH_COUNT]()}
+      {EXTRAS[(cfg.x | 0) % EXTRA_COUNT]()}
+    </g>
+  );
+}
+
 export default function Avatar({ index = 0, size = 64, className = "", animate = true }) {
-  const a = AVATARS[((index % AVATAR_COUNT) + AVATAR_COUNT) % AVATAR_COUNT];
-  const delay = `${-((index % 7) * 0.45).toFixed(2)}s`;
+  const isCustom = index && typeof index === "object";
+  const seed = isCustom ? (index.s || 0) : index;
+  const delay = `${-((seed % 7) * 0.45).toFixed(2)}s`;
+  const c = isCustom ? null : AVATARS[((index % AVATAR_COUNT) + AVATAR_COUNT) % AVATAR_COUNT].color;
   return (
     <span className={`avatar ${className}`} style={{ width: size, height: size, display: "inline-block" }}>
       <svg
@@ -183,7 +249,7 @@ export default function Avatar({ index = 0, size = 64, className = "", animate =
         className={animate ? "av-svg" : ""}
         style={animate ? { animationDelay: delay } : undefined}
       >
-        <Critter index={index} c={a.color} />
+        {isCustom ? <CustomCritter cfg={index} /> : <Critter index={index} c={c} />}
       </svg>
     </span>
   );

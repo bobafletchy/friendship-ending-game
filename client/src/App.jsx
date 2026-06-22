@@ -14,6 +14,16 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [musicOn, setMusicOn] = useState(isMusicOn());
   const [sfxOnState, setSfxOnState] = useState(isSfxOn());
+  const [isLeader, setIsLeader] = useState(false);
+
+  // track whether this device is the leader (first player to join)
+  useEffect(() => {
+    const onPS = (s) => setIsLeader(!!s.you?.isLeader);
+    socket.on("player:state", onPS);
+    return () => socket.off("player:state", onPS);
+  }, []);
+
+  function restart() { emit("restart_game", {}); setMenuOpen(false); }
 
   function toggleMusic() { unlockAudio(); const v = !musicOn; setMusic(v); setMusicOn(v); }
   function toggleSfx() { const v = !sfxOnState; setSfx(v); setSfxOnState(v); }
@@ -131,13 +141,19 @@ export default function App() {
             <button className="btn btn-big btn-lime" onClick={() => setMenuOpen(false)}>
               {inGame ? "← Back to game" : "Done"}
             </button>
-            {inGame && <button className="btn btn-big btn-ghost" onClick={leave}>🏠 Main menu</button>}
-            {inGame && (
-              <p className="menu-note">
-                {mode === "host"
-                  ? "Leaving ends this room for everyone."
-                  : "You can rejoin with the same code & name anytime — your score is kept."}
-              </p>
+
+            {mode === "host" && <button className="btn btn-big btn-ghost" onClick={leave}>🏠 Main menu</button>}
+
+            {mode === "player" && isLeader && (
+              <>
+                <button className="btn btn-big btn-coral" onClick={restart}>🔄 Restart game</button>
+                <button className="btn btn-big btn-ghost" onClick={leave}>🏠 Leave to main menu</button>
+                <p className="menu-note">You're the host 👑 — restart or leave for everyone.</p>
+              </>
+            )}
+
+            {mode === "player" && !isLeader && (
+              <p className="menu-note">Only the host 👑 can restart or end the game. You can rejoin anytime with the same name.</p>
             )}
           </div>
         </div>

@@ -30,14 +30,19 @@ export default function PlayerScreen({ code, playerId, onLeave }) {
     <div className="phone" style={{ "--me": you?.color || "#fff" }}>
       <div className="phone-bar">
         <span className="me-id">
-          {you && <Avatar index={you.avatar} size={32} />}
+          {you && (
+            <span className="me-av">
+              <Avatar index={you.avatar} size={32} />
+              {you.isLeader && <span className="crown crown-sm">👑</span>}
+            </span>
+          )}
           <span className="me-name" style={{ color: you?.color }}>{you?.name}</span>
         </span>
         <span className="me-score">{you?.score ?? 0} pts</span>
       </div>
 
       <div className="phone-body">
-        {t.type === "lobby" && <Lobby />}
+        {t.type === "lobby" && <Lobby task={t} />}
         {t.type === "wait" && <Wait title={t.title} message={t.message} />}
         {t.type === "answer" && <Answer task={t} />}
         {t.type === "answer_targeted" && <AnswerTargeted task={t} />}
@@ -55,11 +60,31 @@ export default function PlayerScreen({ code, playerId, onLeave }) {
   );
 }
 
-function Lobby() {
+function Lobby({ task }) {
+  const [busy, setBusy] = useState(false);
+  if (task.isLeader) {
+    const enough = task.count >= task.min;
+    const start = async () => {
+      setBusy(true);
+      const res = await emit("start_game", {});
+      setBusy(false);
+      if (res.error) alert(res.error);
+    };
+    return (
+      <div className="screen-center fade-in">
+        <h1 className="phone-big">👑 You're the host!</h1>
+        <p className="phone-sub">{task.count} in the room. You control the game.</p>
+        <button className="btn btn-big btn-lime" onClick={start} disabled={!enough || busy} style={{ width: "100%" }}>
+          {enough ? "START THE GAME ▶" : `Need ${task.min - task.count} more…`}
+        </button>
+        <button className="btn btn-ghost btn-sm" onClick={() => emit("add_bots", { count: 3 })}>🤖 Add 3 test bots</button>
+      </div>
+    );
+  }
   return (
     <div className="screen-center fade-in">
       <h1 className="phone-big">You're in! 🎉</h1>
-      <p className="phone-sub">Look up at the big screen. The game starts soon.</p>
+      <p className="phone-sub">👑 {task.leaderName} will start the game. Look up at the big screen.</p>
     </div>
   );
 }

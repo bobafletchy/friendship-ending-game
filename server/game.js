@@ -24,6 +24,21 @@ const TARGETED_SECONDS = 120; // more time — you write about everyone
 const MIN_PLAYERS = 3;
 const TARGET_CAP = 5; // max people you write about per round (keeps big groups sane)
 
+// Pickable preset mascots (Ghoul/Drippy/Imp removed from selection).
+const AVATAR_POOL = [0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 12];
+// Part counts for the build-your-own avatars (must match client avatars.jsx).
+const PART_COUNTS = { c: 12, s: 6, e: 9, m: 8, x: 7 };
+function sanitizeAvatar(av) {
+  if (!av || typeof av !== "object" || !av.custom) return null;
+  const clamp = (v, n) => (((v | 0) % n) + n) % n;
+  return {
+    custom: true,
+    c: clamp(av.c, PART_COUNTS.c), s: clamp(av.s, PART_COUNTS.s),
+    e: clamp(av.e, PART_COUNTS.e), m: clamp(av.m, PART_COUNTS.m),
+    x: clamp(av.x, PART_COUNTS.x),
+  };
+}
+
 // Core round (write about everyone) + the signature Friendship Test twist.
 // Final round is chaos x2.
 const ROUND_PLAN = ["targeted", "madlibs", "targeted", "madlibs", "targeted"];
@@ -131,20 +146,27 @@ export class Game {
   // else the first free mascot (only repeats if a room somehow has 14+).
   pickAvatar(room, requested, exceptId) {
     const taken = new Set(
-      [...room.players.values()].filter((p) => p.id !== exceptId).map((p) => p.avatar)
+      [...room.players.values()]
+        .filter((p) => p.id !== exceptId && Number.isInteger(p.avatar))
+        .map((p) => p.avatar)
     );
-    if (Number.isInteger(requested) && !taken.has(requested)) return requested;
-    for (let i = 0; i < 14; i++) if (!taken.has(i)) return i;
-    return Number.isInteger(requested) ? requested : 0;
+    if (Number.isInteger(requested) && AVATAR_POOL.includes(requested) && !taken.has(requested)) return requested;
+    for (const i of AVATAR_POOL) if (!taken.has(i)) return i;
+    return AVATAR_POOL[0];
   }
 
   addPlayer(room, name, existingId, avatar) {
+    const custom = sanitizeAvatar(avatar);
+    const setAvatar = (p) => {
+      if (custom) p.avatar = custom;
+      else if (Number.isInteger(avatar)) p.avatar = this.pickAvatar(room, avatar, p.id);
+    };
     // reconnect path (same browser/session)
     if (existingId && room.players.has(existingId)) {
       const p = room.players.get(existingId);
       p.connected = true;
       if (name) p.name = name.slice(0, 20);
-      if (Number.isInteger(avatar)) p.avatar = this.pickAvatar(room, avatar, p.id);
+      setAvatar(p);
       return p;
     }
     // fail-safe: reclaim a disconnected slot by matching name (lost session / new device)
@@ -153,24 +175,45 @@ export class Game {
       for (const p of room.players.values()) {
         if (!p.connected && p.name.toLowerCase() === lc) {
           p.connected = true;
-          if (Number.isInteger(avatar)) p.avatar = this.pickAvatar(room, avatar, p.id);
+          setAvatar(p);
           return p;
         }
       }
     }
     const cleanName = (name || "Player").trim().slice(0, 20) || "Player";
     const color = PLAYER_COLORS[room.players.size % PLAYER_COLORS.length];
+    const hasLeader = [...room.players.values()].some((p) => p.isLeader);
     const player = {
       id: newId("p"),
       name: cleanName,
       score: 0,
       connected: true,
       color,
-      avatar: this.pickAvatar(room, avatar, null),
+      avatar: custom || this.pickAvatar(room, avatar, null),
+      isLeader: !hasLeader, // the very first player runs the show
       socketId: null,
     };
     room.players.set(player.id, player);
     return player;
+  }
+
+  // If the leader leaves, hand the crown to another connected human.
+  reassignLeader(room) {
+    const players = [...room.players.values()];
+    if (players.some((p) => p.isLeader && p.connected)) return;
+    players.forEach((p) => { p.isLeader = false; });
+    const next = players.find((p) => p.connected && !p.isBot) || players.find((p) => p.connected);
+    if (next) next.isLeader = true;
+  }
+
+  restartGame(room) {
+    for (const p of room.players.values()) p.score = 0;
+    room.round = null;
+    room.roundIndex = -1;
+    room.tiebreak = null;
+    room.tieWinnerId = null;
+    room.answerDeadline = null;
+    room.phase = "lobby";
   }
 
   addBots(room, n = 3) {
@@ -592,7 +635,7 @@ export class Game {
   // -------------------- VIEWS (broadcast payloads) -----------
   scoreboard(room) {
     return [...room.players.values()]
-      .map((p) => ({ id: p.id, name: p.name, score: p.score, color: p.color, avatar: p.avatar, connected: p.connected, isBot: p.isBot }))
+      .map((p) => ({ id: p.id, name: p.name, score: p.score, color: p.color, avatar: p.avatar, connected: p.connected, isBot: p.isBot, isLeader: p.isLeader }))
       .sort((a, b) => b.score - a.score);
   }
 
@@ -728,7 +771,7 @@ export class Game {
   playerView(room, playerId) {
     const me = room.players.get(playerId);
     const view = {
-      you: me ? { id: me.id, name: me.name, score: me.score, color: me.color, avatar: me.avatar } : null,
+      you: me ? { id: me.id, name: me.name, score: me.score, color: me.color, avatar: me.avatar, isLeader: me.isLeader } : null,
       phase: room.phase,
       roundIndex: room.roundIndex,
       totalRounds: room.totalRounds,
@@ -740,7 +783,14 @@ export class Game {
     const round = room.round;
 
     if (room.phase === "lobby") {
-      view.task = { type: "lobby", message: "You're in! Watch the big screen." };
+      const leader = [...room.players.values()].find((p) => p.isLeader);
+      view.task = {
+        type: "lobby",
+        isLeader: !!me.isLeader,
+        count: room.players.size,
+        min: MIN_PLAYERS,
+        leaderName: leader?.name || "the leader",
+      };
       return view;
     }
     if (room.phase === "round_intro") {

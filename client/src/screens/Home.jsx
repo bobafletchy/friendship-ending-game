@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { emit } from "../socket.js";
-import Avatar, { AVATARS, AVATAR_COUNT } from "../avatars.jsx";
+import Avatar, { AVATARS, AVATAR_PICKS } from "../avatars.jsx";
+import CharacterBuilder from "../components/CharacterBuilder.jsx";
+
+const randPick = () => AVATAR_PICKS[Math.floor(Math.random() * AVATAR_PICKS.length)];
 
 const HOW_TO = [
   { n: "1", title: "GRAB A SCREEN", body: "One device hosts on the TV. Everyone else joins from their phone." },
@@ -16,10 +19,12 @@ export default function Home({ onHost, onJoin }) {
     return c ? c.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 4) : "";
   });
   const [name, setName] = useState("");
-  const [avatar, setAvatar] = useState(() => Math.floor(Math.random() * AVATAR_COUNT));
+  const [avatar, setAvatar] = useState(randPick); // number (preset) or {custom:true,...}
+  const [builderOpen, setBuilderOpen] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [tip, setTip] = useState(0);
+  const isCustom = avatar && typeof avatar === "object";
 
   useEffect(() => {
     const i = setInterval(() => setTip((t) => (t + 1) % HOW_TO.length), 3500);
@@ -72,20 +77,22 @@ export default function Home({ onHost, onJoin }) {
               <div className="avatar-stage">
                 <Avatar index={avatar} size={132} className="hero" />
                 <button type="button" className="shuffle" title="Shuffle"
-                  onClick={() => setAvatar((a) => (a + 1 + Math.floor(Math.random() * (AVATAR_COUNT - 1))) % AVATAR_COUNT)}>
+                  onClick={() => setAvatar(randPick())}>
                   🎲
                 </button>
               </div>
-              <p className="avatar-name">{AVATARS[avatar].name}</p>
+              <p className="avatar-name">{isCustom ? "Your creation ✨" : AVATARS[avatar].name}</p>
 
               <div className="avatar-rail">
-                {AVATARS.map((a, i) => (
+                {AVATAR_PICKS.map((i) => (
                   <button type="button" key={i}
                     className={`avatar-pick ${i === avatar ? "sel" : ""}`}
-                    onClick={() => setAvatar(i)} aria-label={a.name}>
+                    onClick={() => setAvatar(i)} aria-label={AVATARS[i].name}>
                     <Avatar index={i} size={40} />
                   </button>
                 ))}
+                <button type="button" className={`avatar-pick make-own ${isCustom ? "sel" : ""}`}
+                  onClick={() => setBuilderOpen(true)} aria-label="Make your own">✨</button>
               </div>
 
               <input className="input input-code" placeholder="ROOM CODE" maxLength={4} value={code}
@@ -100,7 +107,7 @@ export default function Home({ onHost, onJoin }) {
           {tab === "host" && (
             <div className="host-body">
               <div className="host-illustration">
-                <Avatar index={4} size={88} />
+                <Avatar index={7} size={88} />
                 <Avatar index={6} size={104} />
                 <Avatar index={9} size={88} />
               </div>
@@ -131,6 +138,14 @@ export default function Home({ onHost, onJoin }) {
           </div>
         </aside>
       </div>
+
+      {builderOpen && (
+        <CharacterBuilder
+          initial={isCustom ? avatar : null}
+          onUse={(cfg) => { setAvatar(cfg); setBuilderOpen(false); }}
+          onClose={() => setBuilderOpen(false)}
+        />
+      )}
     </div>
   );
 }
