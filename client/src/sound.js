@@ -71,6 +71,12 @@ export function unlockAudio() {
 
 export function initMusic() { Object.keys(TRACKS).forEach(getTrack); } // preload
 
+// fade out + stop all music (e.g. on a player's phone during play)
+export function stopMusic() {
+  Object.values(audios).forEach((a) => fade(a, 0));
+  currentScene = null;
+}
+
 export function isSfxOn() { return sfxOn; }
 export function isMusicOn() { return musicOn; }
 export function setSfx(on) { sfxOn = on; }

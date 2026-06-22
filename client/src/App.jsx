@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { socket, emit } from "./socket.js";
 import Home from "./screens/Home.jsx";
 import HostScreen from "./screens/HostScreen.jsx";
@@ -17,6 +17,31 @@ export default function App() {
 
   function toggleMusic() { unlockAudio(); const v = !musicOn; setMusic(v); setMusicOn(v); }
   function toggleSfx() { const v = !sfxOnState; setSfx(v); setSfxOnState(v); }
+
+  const modeRef = useRef(mode);
+  modeRef.current = mode;
+
+  // Main-menu music: arm it on load and start the instant the player interacts
+  // (browsers block true autoplay). On repeat visits it can start immediately.
+  useEffect(() => {
+    initMusic();
+    setScene("menu");
+    unlockAudio(); // tries now; if blocked, the first click below starts it
+    const start = () => { if (modeRef.current !== "player") unlockAudio(); };
+    window.addEventListener("pointerdown", start);
+    window.addEventListener("keydown", start);
+    return () => {
+      window.removeEventListener("pointerdown", start);
+      window.removeEventListener("keydown", start);
+    };
+  }, []);
+
+  // Keep music to the menu + host TV; phones stay quiet during play.
+  useEffect(() => {
+    if (mode === "player") stopMusic();
+    else if (mode === "home") setScene("menu");
+    // host: HostScreen drives the scene per phase
+  }, [mode]);
 
   useEffect(() => {
     const onConnect = () => setConnected(true);
