@@ -52,7 +52,7 @@ export default function PlayerScreen({ code, playerId, onLeave }) {
         {t.type === "pick" && <Pick task={t} />}
         {t.type === "vote" && <Vote task={t} />}
         {t.type === "score" && <Score task={t} />}
-        {t.type === "gameover" && <GameOver task={t} onLeave={onLeave} />}
+        {t.type === "gameover" && <GameOver task={t} isLeader={you?.isLeader} onLeave={onLeave} />}
       </div>
 
       {(t.type === "watch" || t.type === "submitted" || t.type === "pick") && <ReactionBar />}
@@ -306,12 +306,19 @@ function Score({ task }) {
   );
 }
 
-function GameOver({ task, onLeave }) {
+function GameOver({ task, isLeader, onLeave }) {
   return (
     <div className="screen-center fade-in">
       <h1 className="phone-big">{task.won ? "👑 YOU WON!" : `#${task.rank}`}</h1>
       <p className="phone-sub">{task.won ? "Friendship successfully ended." : `${task.score} points. Not bad.`}</p>
-      <button className="btn btn-ghost" onClick={onLeave}>Leave game</button>
+      {isLeader ? (
+        <button className="btn btn-big btn-lime" style={{ width: "100%" }} onClick={() => emit("restart_game", {})}>
+          🔄 Play again (same crew)
+        </button>
+      ) : (
+        <p className="phone-sub">Waiting for 👑 the host to start a new game…</p>
+      )}
+      <button className="btn btn-text" onClick={onLeave}>Leave</button>
     </div>
   );
 }

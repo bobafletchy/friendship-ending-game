@@ -121,6 +121,7 @@ function tone({ freq = 440, type = "sine", dur = 0.18, gain = 0.22, slideTo = nu
 const guard = (fn) => (...a) => { if (!sfxOn) return; try { fn(...a); } catch {} };
 
 export const sfx = {
+  join: guard(() => { tone({ freq: 420, slideTo: 720, type: "sine", dur: 0.12, gain: 0.24 }); tone({ freq: 720, slideTo: 1020, type: "sine", dur: 0.13, gain: 0.18, when: 0.09 }); }),
   reveal: guard(() => tone({ freq: 200, slideTo: 540, type: "sine", dur: 0.16, gain: 0.2 })),
   correct: guard(() => [523, 784, 1047].forEach((f, i) => tone({ freq: f, type: "triangle", dur: 0.14, gain: 0.2, when: i * 0.07 }))),
   score: guard(() => { tone({ freq: 880, type: "square", dur: 0.06, gain: 0.16 }); tone({ freq: 1320, type: "square", dur: 0.1, gain: 0.16, when: 0.07 }); }),

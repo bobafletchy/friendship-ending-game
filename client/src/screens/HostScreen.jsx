@@ -25,6 +25,15 @@ export default function HostScreen({ code }) {
   const [slime, setSlime] = useState(false);
   const prevPhase = useRef("lobby");
   const sound = useRef({ phase: null, count: 0, mad: 0, gi: 0 });
+  const playerCount = useRef(0);
+
+  // bloop whenever a new player joins the room
+  useEffect(() => {
+    if (!state) return;
+    const n = state.players?.length || 0;
+    if (n > playerCount.current) sfx.join();
+    playerCount.current = n;
+  }, [state?.players?.length]);
 
   // Audio is host-only. Preload + unlock on the first interaction (autoplay rules),
   // and stop everything when the host screen goes away.

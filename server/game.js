@@ -456,10 +456,15 @@ export class Game {
       round.answerStage = "prompt";  // "prompt" (show question 4s) -> "answer"
       room.phase = "reveal";
     } else {
-      // madlibs: flatten twisted sentences into a reveal list for group voting
+      // madlibs: flatten twisted sentences into a reveal list for group voting.
+      // {NAME} tokens get a random real player's name (the chaos engine).
+      const names = [...room.players.values()].map((p) => p.name);
+      const randName = () => names[Math.floor(Math.random() * names.length)] || "someone";
       const list = [];
       for (const [writer, sub] of round.submissions) {
-        const text = round.basePrompt.twist.replace(/\{(\d+)\}/g, (_, i) => sub.texts[Number(i)] ?? "____");
+        const text = round.basePrompt.twist
+          .replace(/\{NAME\}/g, () => randName())
+          .replace(/\{(\d+)\}/g, (_, i) => sub.texts[Number(i)] ?? "____");
         list.push({ id: newId("a"), writerId: writer, text, promptText: "The Friendship Test" });
       }
       round.revealList = makeDeck(list);
@@ -476,11 +481,15 @@ export class Game {
       if (!g) { this.finishGroup(room); return; }
       if (round.answerStage === "prompt") {
         round.answerStage = "answer"; // flip the question to its filled-in answer
-      } else if (round.answerCursor < g.answers.length) {
-        round.answerCursor++;          // move to the next question
-        round.answerStage = "prompt";
+      } else if (round.answerStage === "answer") {
+        if (round.answerCursor < g.answers.length) {
+          round.answerCursor++;        // move to the next question
+          round.answerStage = "prompt";
+        } else {
+          round.answerStage = "all";   // last answer shown solo -> now reveal the full stack + pick
+        }
       } else {
-        this.finishGroup(room);        // all shown -> next target
+        this.finishGroup(room);        // stage 'all' + skip -> next target
       }
       return;
     }
@@ -493,8 +502,7 @@ export class Game {
   }
 
   targetedAllRevealed(room) {
-    const g = this.currentGroup(room);
-    return !!g && room.round.answerCursor >= g.answers.length && room.round.answerStage === "answer";
+    return !!this.currentGroup(room) && room.round.answerStage === "all";
   }
 
   // -------------------- TARGETED PICKS -----------------------
