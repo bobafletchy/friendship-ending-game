@@ -3,7 +3,7 @@ import { socket, emit } from "./socket.js";
 import Home from "./screens/Home.jsx";
 import HostScreen from "./screens/HostScreen.jsx";
 import PlayerScreen from "./screens/PlayerScreen.jsx";
-import { setMusic, setSfx, isMusicOn, isSfxOn, unlockAudio, initMusic, setScene, stopMusic } from "./sound.js";
+import { setMusic, setSfx, isMusicOn, isSfxOn, unlockAudio } from "./sound.js";
 
 export default function App() {
   // mode: 'home' | 'host' | 'player'
@@ -25,33 +25,9 @@ export default function App() {
 
   function restart() { emit("restart_game", {}); setMenuOpen(false); }
 
+  // Audio lives ONLY on the host (main) screen — see HostScreen. Phones are silent.
   function toggleMusic() { unlockAudio(); const v = !musicOn; setMusic(v); setMusicOn(v); }
   function toggleSfx() { const v = !sfxOnState; setSfx(v); setSfxOnState(v); }
-
-  const modeRef = useRef(mode);
-  modeRef.current = mode;
-
-  // Main-menu music: arm it on load and start the instant the player interacts
-  // (browsers block true autoplay). On repeat visits it can start immediately.
-  useEffect(() => {
-    initMusic();
-    setScene("menu");
-    unlockAudio(); // tries now; if blocked, the first click below starts it
-    const start = () => { if (modeRef.current !== "player") unlockAudio(); };
-    window.addEventListener("pointerdown", start);
-    window.addEventListener("keydown", start);
-    return () => {
-      window.removeEventListener("pointerdown", start);
-      window.removeEventListener("keydown", start);
-    };
-  }, []);
-
-  // Keep music to the menu + host TV; phones stay quiet during play.
-  useEffect(() => {
-    if (mode === "player") stopMusic();
-    else if (mode === "home") setScene("menu");
-    // host: HostScreen drives the scene per phase
-  }, [mode]);
 
   useEffect(() => {
     const onConnect = () => setConnected(true);
@@ -131,14 +107,17 @@ export default function App() {
         <div className="menu-overlay" onClick={() => setMenuOpen(false)}>
           <div className="menu-card" onClick={(e) => e.stopPropagation()}>
             <h2 className="menu-title">{inGame ? "Menu" : "Settings"}</h2>
-            <div className="menu-toggles">
-              <button className={`btn toggle ${musicOn ? "on" : ""}`} onClick={toggleMusic}>
-                {musicOn ? "🎵 Music: On" : "🔇 Music: Off"}
-              </button>
-              <button className={`btn toggle ${sfxOnState ? "on" : ""}`} onClick={toggleSfx}>
-                {sfxOnState ? "🔊 SFX: On" : "🔈 SFX: Off"}
-              </button>
-            </div>
+            {/* Audio is host-only — phones don't show or play sound */}
+            {mode !== "player" && (
+              <div className="menu-toggles">
+                <button className={`btn toggle ${musicOn ? "on" : ""}`} onClick={toggleMusic}>
+                  {musicOn ? "🎵 Music: On" : "🔇 Music: Off"}
+                </button>
+                <button className={`btn toggle ${sfxOnState ? "on" : ""}`} onClick={toggleSfx}>
+                  {sfxOnState ? "🔊 SFX: On" : "🔈 SFX: Off"}
+                </button>
+              </div>
+            )}
             <button className="btn btn-big btn-lime" onClick={() => setMenuOpen(false)}>
               {inGame ? "← Back to game" : "Done"}
             </button>

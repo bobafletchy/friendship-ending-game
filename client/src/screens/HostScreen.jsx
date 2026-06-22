@@ -4,7 +4,7 @@ import { socket, emit } from "../socket.js";
 import TimerRing from "../components/Timer.jsx";
 import FloatingReactions from "../components/Reactions.jsx";
 import Avatar from "../avatars.jsx";
-import { sfx, unlockAudio, initMusic, setScene, playSlime } from "../sound.js";
+import { sfx, unlockAudio, initMusic, setScene, stopMusic, playSlime } from "../sound.js";
 
 // which looping track plays for each phase
 function sceneFor(ph) {
@@ -26,12 +26,14 @@ export default function HostScreen({ code }) {
   const prevPhase = useRef("lobby");
   const sound = useRef({ phase: null, count: 0, mad: 0, gi: 0 });
 
-  // preload music + unlock audio on the very first interaction (autoplay rules)
+  // Audio is host-only. Preload + unlock on the first interaction (autoplay rules),
+  // and stop everything when the host screen goes away.
   useEffect(() => {
     initMusic();
+    unlockAudio();
     const onFirst = () => { unlockAudio(); window.removeEventListener("pointerdown", onFirst); };
     window.addEventListener("pointerdown", onFirst);
-    return () => window.removeEventListener("pointerdown", onFirst);
+    return () => { window.removeEventListener("pointerdown", onFirst); stopMusic(); };
   }, []);
 
   useEffect(() => {
