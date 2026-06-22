@@ -221,7 +221,7 @@ h1, h2, h3, h4 { font-family: "Fredoka", sans-serif; font-weight: 700; line-heig
    ============================================================ */
 .home {
   min-height: 100%; max-width: 1080px; margin: 0 auto;
-  padding: 60px 18px 40px; display: flex; flex-direction: column; gap: 26px;
+  padding: 150px 18px 40px; display: flex; flex-direction: column; gap: 26px;
 }
 .home-head { text-align: center; }
 .logo-lockup { position: relative; display: inline-block; }
