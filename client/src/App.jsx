@@ -3,7 +3,7 @@ import { socket, emit } from "./socket.js";
 import Home from "./screens/Home.jsx";
 import HostScreen from "./screens/HostScreen.jsx";
 import PlayerScreen from "./screens/PlayerScreen.jsx";
-import { setMusic, setSfx, isMusicOn, isSfxOn, unlockAudio } from "./sound.js";
+import { setMusic, setSfx, isMusicOn, isSfxOn, unlockAudio, initMusic, setScene, stopMusic } from "./sound.js";
 
 export default function App() {
   // mode: 'home' | 'host' | 'player'
