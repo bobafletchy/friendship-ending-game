@@ -27,7 +27,7 @@ const TARGET_CAP = 5; // max people you write about per round (keeps big groups 
 // Pickable preset mascots (Ghoul/Drippy/Imp removed from selection).
 const AVATAR_POOL = [0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 12];
 // Part counts for the build-your-own avatars (must match client avatars.jsx).
-const PART_COUNTS = { c: 12, s: 6, e: 9, m: 8, x: 7 };
+const PART_COUNTS = { c: 12, s: 6, e: 9, m: 8, x: 20 };
 function sanitizeAvatar(av) {
   if (!av || typeof av !== "object" || !av.custom) return null;
   const clamp = (v, n) => (((v | 0) % n) + n) % n;

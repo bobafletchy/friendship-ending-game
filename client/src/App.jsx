@@ -123,6 +123,7 @@ export default function App() {
         <span className="blob b3" />
         <span className="blob b4" />
       </div>
+      <UiSlime />
       {!connected && <div className="conn-banner">Reconnecting… (you'll be put right back in)</div>}
 
       <button className="cog-btn" title="Settings (Esc)" onClick={() => setMenuOpen(true)}>⚙️</button>
@@ -163,5 +164,27 @@ export default function App() {
       {mode === "host" && <HostScreen code={code} onLeave={leave} />}
       {mode === "player" && <PlayerScreen code={code} playerId={playerId} onLeave={leave} />}
     </>
+  );
+}
+
+// Decorative slime oozing from the top edge — sits behind content (never covers text).
+function UiSlime() {
+  const drips = [5, 14, 23, 33, 44, 56, 67, 77, 86, 95];
+  return (
+    <div className="ui-slime" aria-hidden="true">
+      <div className="ui-slime-band" />
+      {drips.map((l, i) => (
+        <span
+          key={i}
+          className="ui-drip"
+          style={{
+            left: `${l}%`,
+            "--w": `${9 + (i % 3) * 5}px`,
+            "--h": `${16 + ((i * 7) % 5) * 11}px`,
+            animationDelay: `${(i % 4) * 0.6}s`,
+          }}
+        />
+      ))}
+    </div>
   );
 }

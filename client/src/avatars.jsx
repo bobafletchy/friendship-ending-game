@@ -222,6 +222,32 @@ export const EXTRAS = [
   () => (<g key="x4"><circle cx="50" cy="22" r="6" fill="#fff" stroke={INK} strokeWidth="2.6" /><circle className="av-pup" cx="50" cy="23" r="2.6" fill={INK} /></g>),
   () => <ellipse key="x5" cx="50" cy="9" rx="14" ry="4" fill="none" stroke="#FFD23F" strokeWidth="3" />,
   () => (<g key="x6"><rect x="37" y="4" width="26" height="11" rx="2" fill={INK} /><rect x="31" y="15" width="38" height="4" rx="2" fill={INK} /></g>),
+  // amish beard (chin curtain, no 'stache)
+  () => (<g key="x7"><path d="M30 66c0 16 8 25 20 25s20-9 20-25c-6 6-14 8-20 8s-14-2-20-8Z" fill="#5b3a22" stroke={INK} strokeWidth="3" strokeLinejoin="round" /><path d="M31 64c-2-6-2-12-1-18M69 64c2-6 2-12 1-18" stroke="#5b3a22" strokeWidth="5" fill="none" strokeLinecap="round" /></g>),
+  // giant unibrow
+  () => <path key="x8" d="M27 40c9-8 37-8 46 0-2 5-8 6-12 4-5 4-17 4-22 0-4 2-10 1-12-4Z" fill="#2e2114" stroke={INK} strokeWidth="2" strokeLinejoin="round" />,
+  // cleavage
+  () => (<g key="x9"><path d="M32 93a9 8 0 0 1 18 0Z" fill="#F4C9A0" stroke={INK} strokeWidth="2.6" /><path d="M50 93a9 8 0 0 1 18 0Z" fill="#F4C9A0" stroke={INK} strokeWidth="2.6" /></g>),
+  // toilet hat
+  () => (<g key="x10"><rect x="39" y="-5" width="22" height="11" rx="2" fill="#fff" stroke={INK} strokeWidth="2.6" /><ellipse cx="50" cy="12" rx="19" ry="9" fill="#fff" stroke={INK} strokeWidth="3" /><ellipse cx="50" cy="12" rx="11" ry="4.5" fill="#BFE3FF" stroke={INK} strokeWidth="1.5" /></g>),
+  // bucket hat over the eyes
+  () => (<g key="x11"><path d="M22 50c-2-3 1-7 5-7h46c4 0 7 4 5 7Z" fill="#6FB6FF" stroke={INK} strokeWidth="3" strokeLinejoin="round" /><path d="M30 45c0-13 40-13 40 0v3H30Z" fill="#6FB6FF" stroke={INK} strokeWidth="3" strokeLinejoin="round" /></g>),
+  // slime hat
+  () => (<g key="x12"><path d="M18 32C18 16 82 16 82 32C82 44 79 50 76 41C73 58 69 58 67 41C65 60 60 60 58 39C56 64 50 64 49 39C47 60 43 60 41 42C39 56 35 56 33 40C31 52 25 50 23 38C21 46 18 44 18 32Z" fill="#7ED957" stroke={INK} strokeWidth="3" strokeLinejoin="round" /><ellipse cx="38" cy="26" rx="7" ry="3" fill="#B6FF7A" opacity="0.7" /></g>),
+  // arrow through head, spitting blood
+  () => (<g key="x13"><line x1="12" y1="34" x2="88" y2="34" stroke="#7a4a1e" strokeWidth="4" /><path d="M12 34l9-6v12Z" fill="#FF5C49" stroke={INK} strokeWidth="1.5" /><path d="M20 34l9-6v12Z" fill="#FF5C49" stroke={INK} strokeWidth="1.5" /><path d="M88 34l-11-6v12Z" fill="#C9CDD2" stroke={INK} strokeWidth="1.5" /><path d="M34 38c-1 7 0 12 2 14 2-3 2-9 1-14Z" fill="#C1121F" /><path d="M66 38c-1 8 1 13 3 15 2-3 2-10 0-15Z" fill="#C1121F" /><circle cx="35" cy="57" r="2.4" fill="#C1121F" /><circle cx="70" cy="59" r="2.4" fill="#C1121F" /></g>),
+  // ball gag
+  () => (<g key="x14"><path d="M28 60c8 7 36 7 44 0" stroke="#2c2c2c" strokeWidth="3" fill="none" /><circle cx="50" cy="65" r="7.5" fill="#E63946" stroke={INK} strokeWidth="2.6" /><ellipse cx="47" cy="62" rx="2.2" ry="1.6" fill="#fff" opacity="0.7" /></g>),
+  // handlebar mustache
+  () => <path key="x15" d="M50 58c-3 0-3 3-8 3-7 0-9-4-14-2 2 5 10 6 14 2 1 3 7 3 8 3s7 0 8-3c4 4 12 3 14-2-5-2-7 2-14 2-5 0-5-3-8-3Z" fill="#3a2a1a" stroke={INK} strokeWidth="1.8" strokeLinejoin="round" />,
+  // nun habit
+  () => (<g key="x16"><path d="M50 8C29 8 18 25 18 47c0 18 7 31 7 31l9-5c-4-9-6-18-6-26 0-15 8-25 22-25s22 10 22 25c0 8-2 17-6 26l9 5s7-13 7-31C82 25 71 8 50 8Z" fill="#1c1c22" stroke={INK} strokeWidth="2" strokeLinejoin="round" /><path d="M33 27c5-7 29-7 34 0-2 5-6 6-6 12H39c0-6-4-7-6-12Z" fill="#fff" stroke={INK} strokeWidth="2" strokeLinejoin="round" /></g>),
+  // elephant mask
+  () => (<g key="x17"><ellipse cx="20" cy="44" rx="13" ry="17" fill="#aab0b6" stroke={INK} strokeWidth="3" /><ellipse cx="80" cy="44" rx="13" ry="17" fill="#aab0b6" stroke={INK} strokeWidth="3" /><path d="M30 32c0-11 40-11 40 0 0 16-5 22-5 34 0 5-30 5-30 0 0-12-5-18-5-34Z" fill="#b9bfc5" stroke={INK} strokeWidth="3" strokeLinejoin="round" /><circle cx="41" cy="42" r="3" fill={INK} /><circle cx="59" cy="42" r="3" fill={INK} /><path d="M50 56c-4 0-6 4-6 11s2 15 0 21c4 2 8 2 12 0-2-6 0-14 0-21s-2-11-6-11Z" fill="#b9bfc5" stroke={INK} strokeWidth="3" strokeLinejoin="round" /></g>),
+  // monkey mask
+  () => (<g key="x18"><circle cx="23" cy="40" r="11" fill="#8a5a32" stroke={INK} strokeWidth="3" /><circle cx="77" cy="40" r="11" fill="#8a5a32" stroke={INK} strokeWidth="3" /><path d="M30 30c0-9 40-9 40 0 0 14-4 20-4 30 0 5-32 5-32 0 0-10-4-16-4-30Z" fill="#a06f3f" stroke={INK} strokeWidth="3" strokeLinejoin="round" /><ellipse cx="50" cy="58" rx="16" ry="12" fill="#e6c79c" stroke={INK} strokeWidth="2.4" /><circle cx="44" cy="44" r="3" fill={INK} /><circle cx="56" cy="44" r="3" fill={INK} /><ellipse cx="46" cy="55" rx="2" ry="3" fill={INK} /><ellipse cx="54" cy="55" rx="2" ry="3" fill={INK} /><path d="M44 64c3 2 9 2 12 0" stroke={INK} strokeWidth="2" fill="none" /></g>),
+  // paper bag head
+  () => (<g key="x19"><path d="M26 24l4-7 6 5 6-6 6 6 6-5 6 6 6-5 4 6v52c0 4-3 6-7 6H31c-4 0-7-2-7-6V24Z" fill="#D9B382" stroke={INK} strokeWidth="3" strokeLinejoin="round" /><ellipse cx="40" cy="48" rx="6" ry="7" fill={INK} /><ellipse cx="60" cy="48" rx="6" ry="7" fill={INK} /><circle className="av-pup" cx="41" cy="49" r="2.4" fill="#fff" /><circle className="av-pup" cx="61" cy="49" r="2.4" fill="#fff" /><path d="M42 66c3-3 11-3 14 0" stroke={INK} strokeWidth="2.4" fill="none" /></g>),
 ];
 export const EXTRA_COUNT = EXTRAS.length;
 
