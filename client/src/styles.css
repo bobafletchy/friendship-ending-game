@@ -80,7 +80,7 @@ body {
   mix-blend-mode: screen; will-change: transform;
 }
 .blob.b1 { width: 46vmax; height: 46vmax; background: #c6ff3d; top: -8vmax; left: -6vmax; animation: drift1 22s ease-in-out infinite; }
-.blob.b2 { width: 42vmax; height: 42vmax; background: #ff5c49; bottom: -10vmax; right: -8vmax; animation: drift2 26s ease-in-out infinite; }
+.blob.b2 { width: 42vmax; height: 42vmax; background: #ff2a1f; bottom: -10vmax; right: -8vmax; opacity: .62; animation: drift2 26s ease-in-out infinite; }
 .blob.b3 { width: 34vmax; height: 34vmax; background: #7fe3ff; top: 30%; left: 35%; opacity: .4; animation: drift3 30s ease-in-out infinite; }
 .blob.b4 { width: 30vmax; height: 30vmax; background: #ff8a3d; bottom: 10%; left: 8%; opacity: .35; animation: drift1 28s ease-in-out infinite reverse; }
 @keyframes drift1 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(14vmax, 10vmax) scale(1.15); } }
@@ -221,7 +221,7 @@ h1, h2, h3, h4 { font-family: "Fredoka", sans-serif; font-weight: 700; line-heig
    ============================================================ */
 .home {
   min-height: 100%; max-width: 1080px; margin: 0 auto;
-  padding: 28px 18px 40px; display: flex; flex-direction: column; gap: 26px;
+  padding: 60px 18px 40px; display: flex; flex-direction: column; gap: 26px;
 }
 .home-head { text-align: center; }
 .logo-lockup { position: relative; display: inline-block; }
