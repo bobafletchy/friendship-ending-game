@@ -24,6 +24,10 @@ export default function Home({ onHost, onJoin }) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [tip, setTip] = useState(0);
+  // How-To collapses on phones (where vertical room is tight); always open on bigger screens.
+  const [howtoOpen, setHowtoOpen] = useState(
+    () => !(typeof window !== "undefined" && window.matchMedia("(max-width: 860px)").matches)
+  );
   const isCustom = avatar && typeof avatar === "object";
 
   useEffect(() => {
@@ -75,7 +79,7 @@ export default function Home({ onHost, onJoin }) {
           {tab === "join" && (
             <form className="join-body" onSubmit={join}>
               <div className="avatar-stage">
-                <Avatar index={avatar} size={132} className="hero" />
+                <Avatar index={avatar} size={92} className="hero" />
                 <button type="button" className="shuffle" title="Shuffle"
                   onClick={() => setAvatar(randPick())}>
                   🎲
@@ -122,19 +126,25 @@ export default function Home({ onHost, onJoin }) {
         </section>
 
         {/* HOW TO PLAY RAIL */}
-        <aside className="card howto-card">
-          <h3 className="howto-head">HOW TO PLAY</h3>
-          <div className="howto-step" key={tip}>
-            <span className="howto-n">{HOW_TO[tip].n}</span>
-            <div>
-              <h4>{HOW_TO[tip].title}</h4>
-              <p>{HOW_TO[tip].body}</p>
+        <aside className={`card howto-card ${howtoOpen ? "open" : ""}`}>
+          <button type="button" className="howto-head" aria-expanded={howtoOpen}
+            onClick={() => setHowtoOpen((o) => !o)}>
+            HOW TO PLAY
+            <span className="howto-toggle" aria-hidden="true">▾</span>
+          </button>
+          <div className="howto-collapse">
+            <div className="howto-step" key={tip}>
+              <span className="howto-n">{HOW_TO[tip].n}</span>
+              <div>
+                <h4>{HOW_TO[tip].title}</h4>
+                <p>{HOW_TO[tip].body}</p>
+              </div>
             </div>
-          </div>
-          <div className="howto-dots">
-            {HOW_TO.map((_, i) => (
-              <button key={i} className={`hdot ${i === tip ? "on" : ""}`} onClick={() => setTip(i)} />
-            ))}
+            <div className="howto-dots">
+              {HOW_TO.map((_, i) => (
+                <button key={i} className={`hdot ${i === tip ? "on" : ""}`} onClick={() => setTip(i)} />
+              ))}
+            </div>
           </div>
         </aside>
       </div>
