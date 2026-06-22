@@ -45,23 +45,26 @@ body {
   overflow-x: hidden;
 }
 
-/* ---------- decorative slime oozing from the top (behind content) ---------- */
-.ui-slime { position: fixed; top: 0; left: 0; right: 0; height: 90px; z-index: -1; pointer-events: none; }
-.ui-slime-band {
-  position: absolute; top: 0; left: 0; right: 0; height: 13px;
-  background: linear-gradient(180deg, #d8ff6b, #8fe000);
-  box-shadow: 0 3px 10px rgba(150, 255, 0, .35);
+/* ---------- decorative gooey slime oozing from the top (behind content) ---------- */
+.ui-slime { position: fixed; top: 0; left: 0; right: 0; height: 130px; z-index: -1; pointer-events: none; }
+.ui-slime-svg {
+  display: block; width: 100%; height: 132px; transform-origin: top center;
+  animation: ooze 5s ease-in-out infinite;
+  filter: drop-shadow(0 6px 9px rgba(140, 224, 0, .3));
 }
-.ui-drip {
-  position: absolute; top: 9px; width: var(--w); height: var(--h);
-  transform: translateX(-50%); transform-origin: top center;
-  background: linear-gradient(180deg, #c6ff3d, #8fe000);
-  border-radius: 44% 44% 50% 50% / 12% 12% 100% 100%;
-  box-shadow: inset 3px 2px 4px rgba(255, 255, 255, .45), inset 0 -5px 7px rgba(110, 170, 0, .4);
-  animation: uiDrip 4.5s ease-in-out infinite;
+@keyframes ooze { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.045); } }
+.ui-droplet {
+  position: absolute; width: 12px; height: 15px; opacity: 0;
+  background: radial-gradient(circle at 35% 30%, #e8ff95, #8fe000 75%);
+  border-radius: 50% 50% 50% 50% / 38% 38% 62% 62%;
+  box-shadow: inset 3px 2px 3px rgba(255, 255, 255, .5);
+  animation: dropFall 3.4s ease-in infinite;
 }
-@keyframes uiDrip { 0%, 100% { transform: translateX(-50%) scaleY(.96); } 50% { transform: translateX(-50%) scaleY(1.12); } }
-@media (prefers-reduced-motion: reduce) { .ui-drip { animation: none; } }
+.ui-droplet.d1 { left: 24%; animation-delay: .4s; }
+.ui-droplet.d2 { left: 57%; animation-delay: 1.7s; }
+.ui-droplet.d3 { left: 82%; animation-delay: 2.7s; }
+@keyframes dropFall { 0% { top: 58px; opacity: 0; } 12% { opacity: 1; } 100% { top: 240px; opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .ui-slime-svg, .ui-droplet { animation: none; } .ui-droplet { display: none; } }
 
 /* ---------- liquid glass backdrop ---------- */
 :root {
@@ -519,6 +522,42 @@ h1, h2, h3, h4 { font-family: "Fredoka", sans-serif; font-weight: 700; line-heig
 .scoreboard.final .sb-row { grid-template-columns: 36px 40px 1fr auto; }
 .sb-row.champ { border-color: var(--lime); box-shadow: 0 0 0 2px var(--lime); }
 
+/* ---- dancing avatars (the winner celebration goes feral) ---- */
+.winner-stage { display: flex; justify-content: center; filter: drop-shadow(0 0 34px rgba(198,255,61,.45)); }
+.dance-floor { display: flex; flex-wrap: wrap; gap: 26px 18px; justify-content: center; align-items: flex-end; max-width: 1000px; padding: 14px 0 6px; }
+
+.dancer { position: relative; width: var(--s); height: calc(var(--s) * 1.85);
+  transform-origin: bottom center; animation: danceBop .42s ease-in-out infinite; will-change: transform; }
+.dancer .d-head { position: relative; z-index: 4; }
+.d-crown { position: absolute; top: -14%; left: 50%; transform: translateX(-50%); right: auto; font-size: calc(var(--s) * .34); animation: none; }
+.d-torso { position: absolute; left: 50%; top: calc(var(--s) * .82); width: calc(var(--s) * .5); height: calc(var(--s) * .58);
+  background: var(--c); border: 3px solid var(--ink); border-radius: 42% 42% 34% 34%; z-index: 3;
+  transform-origin: top center; animation: twerk .22s ease-in-out infinite; }
+.d-arm { position: absolute; top: calc(var(--s) * .9); width: calc(var(--s) * .13); height: calc(var(--s) * .46);
+  background: var(--c); border: 3px solid var(--ink); border-radius: 8px; z-index: 2; transform-origin: top center; }
+.d-arm-l { left: calc(50% - var(--s) * .34); animation: armL .26s ease-in-out infinite; }
+.d-arm-r { left: calc(50% + var(--s) * .21); animation: armR .26s ease-in-out infinite; }
+.d-legs { position: absolute; top: calc(var(--s) * 1.32); left: 0; right: 0; display: flex; justify-content: center; gap: calc(var(--s) * .1); z-index: 2; }
+.d-leg { width: calc(var(--s) * .14); height: calc(var(--s) * .5); background: var(--c); border: 3px solid var(--ink); border-radius: 8px; transform-origin: top center; }
+.d-leg-l { animation: legL .24s ease-in-out infinite; }
+.d-leg-r { animation: legR .24s ease-in-out infinite; }
+
+@keyframes danceBop {
+  0%   { transform: translateY(0) rotate(-7deg) scaleY(1); }
+  25%  { transform: translateY(-14%) rotate(7deg) scaleY(1.04); }
+  50%  { transform: translateY(0) rotate(-3deg) scaleY(.9); }
+  75%  { transform: translateY(-9%) rotate(6deg) scaleY(1.02); }
+  100% { transform: translateY(0) rotate(-7deg) scaleY(1); }
+}
+@keyframes twerk { 0%,100% { transform: translateX(-50%) rotate(-12deg) translateY(0); } 50% { transform: translateX(-50%) rotate(12deg) translateY(4px); } }
+@keyframes armL { 0%,100% { transform: rotate(28deg); } 50% { transform: rotate(-72deg); } }
+@keyframes armR { 0%,100% { transform: rotate(-28deg); } 50% { transform: rotate(72deg); } }
+@keyframes legL { 0%,100% { transform: rotate(-12deg); } 50% { transform: rotate(16deg); } }
+@keyframes legR { 0%,100% { transform: rotate(14deg); } 50% { transform: rotate(-14deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .dancer, .d-torso, .d-arm, .d-leg { animation: none; }
+}
+
 /* ============================================================
    PHONE / PLAYER SCREEN
    ============================================================ */
@@ -588,8 +627,8 @@ h1, h2, h3, h4 { font-family: "Fredoka", sans-serif; font-weight: 700; line-heig
 .floating-emoji { position: absolute; bottom: -40px; font-size: 50px; animation: floatUp linear forwards; }
 
 /* confetti */
-.confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
-.confetti span { position: absolute; top: -20px; width: 12px; height: 18px; border-radius: 3px; animation: fall linear forwards; }
+.confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 60; }
+.confetti span { position: absolute; top: -24px; width: 12px; height: 18px; border-radius: 3px; animation: fall linear infinite; }
 
 /* ============================================================
    ANIMATIONS

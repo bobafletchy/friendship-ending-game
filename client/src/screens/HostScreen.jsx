@@ -404,44 +404,75 @@ function TiebreakVote({ state }) {
   );
 }
 
+// A dancing little body topped with the player's avatar head. Goes feral.
+function Dancer({ avatar, color, size = 90, crown = false, delay = 0 }) {
+  return (
+    <div className="dancer" style={{ "--c": color, "--s": `${size}px`, animationDelay: `${delay}s` }}>
+      <span className="d-arm d-arm-l" style={{ animationDelay: `${delay}s` }} />
+      <span className="d-arm d-arm-r" style={{ animationDelay: `${delay}s` }} />
+      <div className="d-legs">
+        <span className="d-leg d-leg-l" style={{ animationDelay: `${delay}s` }} />
+        <span className="d-leg d-leg-r" style={{ animationDelay: `${delay + 0.1}s` }} />
+      </div>
+      <div className="d-torso" style={{ animationDelay: `${delay}s` }} />
+      <div className="d-head">
+        {crown && <span className="crown d-crown">👑</span>}
+        <Avatar index={avatar} size={size} />
+      </div>
+    </div>
+  );
+}
+
 function GameOver({ state }) {
   const board = state.players;
   const winner = board[0];
-  const [boom, setBoom] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setBoom(true), 400); return () => clearTimeout(t); }, []);
   return (
     <div className="gameover screen-center fade-in">
-      {boom && <Confetti />}
+      <Confetti />
       <p className="kicker">The friendship has officially ended.</p>
-      {winner && <div className="champ-avatar pop-in"><Avatar index={winner.avatar} size={140} /></div>}
-      <h1 className="winner-name" style={{ color: winner?.color }}>👑 {winner?.name}</h1>
-      <p className="winner-sub">wins with {winner?.score} points</p>
+      {winner && (
+        <div className="winner-stage">
+          <Dancer avatar={winner.avatar} color={winner.color} size={150} crown delay={0} />
+        </div>
+      )}
+      <h1 className="winner-name" style={{ color: winner?.color }}>{winner?.name}</h1>
+      <p className="winner-sub">wins with {winner?.score} points 🏆</p>
+
+      <div className="dance-floor">
+        {board.map((p, i) => (
+          <Dancer key={p.id} avatar={p.avatar} color={p.color} size={70} delay={(i % 5) * 0.07} />
+        ))}
+      </div>
+
       <div className="scoreboard final">
         {board.map((p, i) => (
           <div key={p.id} className={`sb-row ${i === 0 ? "champ" : ""}`}>
             <span className="sb-rank">{i + 1}</span>
-            <Avatar index={p.avatar} size={36} />
+            <span className="chip-av"><Avatar index={p.avatar} size={36} />{p.isLeader && <span className="crown crown-sm">👑</span>}</span>
             <span className="sb-name" style={{ color: p.color }}>{p.name}</span>
             <span className="sb-score">{p.score}</span>
           </div>
         ))}
       </div>
-      <p className="footnote">Refresh the page to play again.</p>
+      <p className="footnote">👑 {board.find((p) => p.isLeader)?.name || "The host"} can hit ⚙️ → Restart on their phone to run it back.</p>
     </div>
   );
 }
 
+// Continuous heavy confetti rain.
 function Confetti() {
-  const bits = Array.from({ length: 60 });
-  const colors = ["#ff4d6d", "#ffb703", "#06d6a0", "#4cc9f0", "#b5179e", "#f72585"];
+  const colors = ["#ff4d6d", "#ffb703", "#06d6a0", "#4cc9f0", "#b5179e", "#f72585", "#c6ff3d", "#ff7b00"];
+  const bits = Array.from({ length: 150 });
   return (
     <div className="confetti">
       {bits.map((_, i) => (
         <span key={i} style={{
           left: `${Math.random() * 100}%`,
           background: colors[i % colors.length],
-          animationDelay: `${Math.random() * 2}s`,
-          animationDuration: `${2 + Math.random() * 2}s`,
+          width: `${7 + Math.random() * 8}px`,
+          height: `${10 + Math.random() * 10}px`,
+          animationDelay: `${Math.random() * 3}s`,
+          animationDuration: `${1.6 + Math.random() * 2.2}s`,
         }} />
       ))}
     </div>

@@ -304,7 +304,7 @@ io.on("connection", (socket) => {
 const AUTO = {
   introHold: 5500,        // round title on screen
   promptHold: 4000,       // Hot Seat: show the question alone before the answer
-  answerHold: 3200,       // Hot Seat: linger on the answer before the next one
+  answerHold: 2400,       // Hot Seat: linger on the answer before the next one
   madlibsStep: 6000,      // Friendship Test: each twisted line stays up longer
   votePatience: 28000,    // fallback if someone never votes
   scoresHold: 9000,       // scoreboard linger

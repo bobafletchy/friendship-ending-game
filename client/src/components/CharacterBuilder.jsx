@@ -7,23 +7,27 @@ const randomCfg = () => ({
   e: rnd(EYE_COUNT), m: rnd(MOUTH_COUNT), x: rnd(EXTRA_COUNT),
 });
 
-// Seamless on-phone popup (no page load): tap parts, watch the live preview.
-export default function CharacterBuilder({ initial, onUse, onClose }) {
-  const [cfg, setCfg] = useState(() => (initial && initial.custom ? { ...initial } : randomCfg()));
-  const set = (k, v) => setCfg((p) => ({ ...p, [k]: v }));
-
-  const Row = ({ label, count, k }) => (
+// NOTE: defined at module scope (not inside the component) so the scroll
+// containers keep their identity across re-renders and don't snap back.
+function PartRow({ label, count, k, cfg, onPick }) {
+  return (
     <div className="cb-row">
       <span className="cb-label">{label}</span>
       <div className="cb-opts">
         {Array.from({ length: count }).map((_, i) => (
-          <button key={i} type="button" className={`cb-opt ${cfg[k] === i ? "on" : ""}`} onClick={() => set(k, i)}>
+          <button key={i} type="button" className={`cb-opt ${cfg[k] === i ? "on" : ""}`} onClick={() => onPick(k, i)}>
             <Avatar index={{ ...cfg, [k]: i }} size={38} animate={false} />
           </button>
         ))}
       </div>
     </div>
   );
+}
+
+// Seamless on-phone popup (no page load): tap parts, watch the live preview.
+export default function CharacterBuilder({ initial, onUse, onClose }) {
+  const [cfg, setCfg] = useState(() => (initial && initial.custom ? { ...initial } : randomCfg()));
+  const pick = (k, v) => setCfg((p) => ({ ...p, [k]: v }));
 
   return (
     <div className="cb-overlay" onClick={onClose}>
@@ -34,19 +38,19 @@ export default function CharacterBuilder({ initial, onUse, onClose }) {
           <button type="button" className="cb-x" onClick={onClose} aria-label="Close">✕</button>
         </div>
 
-        <Row label="Body" count={SHAPE_COUNT} k="s" />
+        <PartRow label="Body" count={SHAPE_COUNT} k="s" cfg={cfg} onPick={pick} />
         <div className="cb-row">
           <span className="cb-label">Color</span>
           <div className="cb-opts">
             {COLORS.map((col, i) => (
               <button key={i} type="button" className={`cb-swatch ${cfg.c === i ? "on" : ""}`}
-                style={{ background: col }} onClick={() => set("c", i)} aria-label={`color ${i}`} />
+                style={{ background: col }} onClick={() => pick("c", i)} aria-label={`color ${i}`} />
             ))}
           </div>
         </div>
-        <Row label="Eyes" count={EYE_COUNT} k="e" />
-        <Row label="Mouth" count={MOUTH_COUNT} k="m" />
-        <Row label="Extra" count={EXTRA_COUNT} k="x" />
+        <PartRow label="Eyes" count={EYE_COUNT} k="e" cfg={cfg} onPick={pick} />
+        <PartRow label="Mouth" count={MOUTH_COUNT} k="m" cfg={cfg} onPick={pick} />
+        <PartRow label="Extra" count={EXTRA_COUNT} k="x" cfg={cfg} onPick={pick} />
 
         <div className="cb-actions">
           <button type="button" className="btn btn-ghost" onClick={() => setCfg(randomCfg())}>🎲 Random</button>

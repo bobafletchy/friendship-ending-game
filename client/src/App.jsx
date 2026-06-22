@@ -167,24 +167,24 @@ export default function App() {
   );
 }
 
-// Decorative slime oozing from the top edge — sits behind content (never covers text).
+// Decorative gooey slime oozing from the top edge — behind content (never covers text).
 function UiSlime() {
-  const drips = [5, 14, 23, 33, 44, 56, 67, 77, 86, 95];
   return (
     <div className="ui-slime" aria-hidden="true">
-      <div className="ui-slime-band" />
-      {drips.map((l, i) => (
-        <span
-          key={i}
-          className="ui-drip"
-          style={{
-            left: `${l}%`,
-            "--w": `${9 + (i % 3) * 5}px`,
-            "--h": `${16 + ((i * 7) % 5) * 11}px`,
-            animationDelay: `${(i % 4) * 0.6}s`,
-          }}
-        />
-      ))}
+      <svg className="ui-slime-svg" viewBox="0 0 1200 155" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="slimeGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#d4ff5e" />
+            <stop offset="55%" stopColor="#a6e800" />
+            <stop offset="100%" stopColor="#7ec900" />
+          </linearGradient>
+        </defs>
+        <path fill="url(#slimeGrad)" d="M0 0 H1200 V58 C1185 70 1170 96 1150 96 C1130 96 1118 64 1098 58 C1078 80 1062 132 1040 132 C1018 132 1010 72 990 60 C968 78 952 100 932 100 C912 100 902 66 882 58 C858 88 840 128 818 128 C796 128 786 70 766 60 C742 80 726 150 702 150 C678 150 670 74 650 60 C628 80 612 104 592 104 C572 104 562 66 542 58 C516 84 498 126 476 126 C454 126 446 72 426 60 C404 80 388 100 368 100 C348 100 338 66 318 58 C292 86 274 134 252 134 C230 134 222 72 202 60 C180 80 164 104 144 104 C124 104 114 66 94 58 C72 82 56 110 36 110 C20 110 10 74 0 60 Z" />
+        <path fill="#ECFFB3" opacity="0.5" d="M60 14 C120 8 220 8 280 16 C220 26 120 26 60 20 Z" />
+        <path fill="#ECFFB3" opacity="0.45" d="M520 12 C600 6 720 6 800 14 C720 24 600 24 520 18 Z" />
+        <path fill="#ECFFB3" opacity="0.45" d="M980 14 C1040 9 1120 9 1160 16 C1120 24 1040 24 980 19 Z" />
+      </svg>
+      <span className="ui-droplet d1" /><span className="ui-droplet d2" /><span className="ui-droplet d3" />
     </div>
   );
 }
