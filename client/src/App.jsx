@@ -147,29 +147,37 @@ export default function App() {
   );
 }
 
-// Two little people drifting apart with a broken heart between them — a tiny breakup loop.
+// A real heart drawn as two halves that crack apart along a jagged seam.
+function BrokenHeart() {
+  return (
+    <svg className="heart-svg" viewBox="0 0 100 100" aria-hidden="true">
+      <path className="heart-half heart-l" d="M50 33 C44 18 22 18 19 38 C16 56 38 69 50 83 L45 68 L55 56 L44 45 Z" />
+      <path className="heart-half heart-r" d="M50 33 C56 18 78 18 81 38 C84 56 62 69 50 83 L45 68 L55 56 L44 45 Z" />
+    </svg>
+  );
+}
+
+// Two little people drifting apart while the heart between them snaps — a breakup loop.
 function Breakup() {
   return (
     <span className="bu-scene">
       <span className="bu-fig bu-left">🧍</span>
-      <span className="bu-broken">💔</span>
+      <span className="bu-broken"><BrokenHeart /></span>
       <span className="bu-fig bu-right">🧍</span>
     </span>
   );
 }
 
-// Decorative love-gone-wrong layer behind every screen: floating broken hearts,
-// cupids on the loose, and couples splitting up. Pure CSS motion, never covers text.
+// Decorative love-gone-wrong layer behind every screen: hearts that float up and
+// break in half, plus couples splitting up. Pure CSS motion, never covers text.
 function LoveDecor() {
   return (
     <div className="love-decor" aria-hidden="true">
-      <span className="ld ld-heart h1">💔</span>
-      <span className="ld ld-heart h2">💔</span>
-      <span className="ld ld-heart h3">💔</span>
-      <span className="ld ld-heart h4">💔</span>
-      <span className="ld ld-heart h5">💔</span>
-      <span className="ld ld-cupid c1">👼</span>
-      <span className="ld ld-cupid c2">🏹</span>
+      <span className="ld ld-heart h1"><BrokenHeart /></span>
+      <span className="ld ld-heart h2"><BrokenHeart /></span>
+      <span className="ld ld-heart h3"><BrokenHeart /></span>
+      <span className="ld ld-heart h4"><BrokenHeart /></span>
+      <span className="ld ld-heart h5"><BrokenHeart /></span>
       <span className="ld ld-breakup bu1"><Breakup /></span>
       <span className="ld ld-breakup bu2"><Breakup /></span>
     </div>
