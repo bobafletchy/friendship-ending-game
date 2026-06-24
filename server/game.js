@@ -454,7 +454,9 @@ export class Game {
       round.groupCursor = 0;
       round.answerCursor = 1;        // which answer we're on for this target
       round.answerStage = "prompt";  // "prompt" (show question 4s) -> "answer"
-      room.phase = "reveal";
+      // Nobody answered (whole room blanked out) — there's nothing to reveal, so
+      // don't strand the TV on an empty reveal phase. Jump straight to scores.
+      room.phase = round.revealGroups.length ? "reveal" : "round_scores";
     } else {
       // madlibs: flatten twisted sentences into a reveal list for group voting.
       // {NAME} tokens get a random real player's name (the chaos engine).
