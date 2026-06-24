@@ -99,6 +99,7 @@ export default function App() {
         <span className="blob b3" />
         <span className="blob b4" />
       </div>
+      <LoveDecor />
       {mode !== "player" && <UiSlime />}
       {!connected && <div className="conn-banner">Reconnecting… (you'll be put right back in)</div>}
 
@@ -143,6 +144,35 @@ export default function App() {
       {mode === "host" && <HostScreen code={code} onLeave={leave} />}
       {mode === "player" && <PlayerScreen code={code} playerId={playerId} onLeave={leave} />}
     </>
+  );
+}
+
+// Two little people drifting apart with a broken heart between them — a tiny breakup loop.
+function Breakup() {
+  return (
+    <span className="bu-scene">
+      <span className="bu-fig bu-left">🧍</span>
+      <span className="bu-broken">💔</span>
+      <span className="bu-fig bu-right">🧍</span>
+    </span>
+  );
+}
+
+// Decorative love-gone-wrong layer behind every screen: floating broken hearts,
+// cupids on the loose, and couples splitting up. Pure CSS motion, never covers text.
+function LoveDecor() {
+  return (
+    <div className="love-decor" aria-hidden="true">
+      <span className="ld ld-heart h1">💔</span>
+      <span className="ld ld-heart h2">💔</span>
+      <span className="ld ld-heart h3">💔</span>
+      <span className="ld ld-heart h4">💔</span>
+      <span className="ld ld-heart h5">💔</span>
+      <span className="ld ld-cupid c1">👼</span>
+      <span className="ld ld-cupid c2">🏹</span>
+      <span className="ld ld-breakup bu1"><Breakup /></span>
+      <span className="ld ld-breakup bu2"><Breakup /></span>
+    </div>
   );
 }
 

@@ -338,50 +338,58 @@ function RoundScores({ state, onNext }) {
   const board = state.players;
   const max = Math.max(1, ...board.map((p) => p.score));
   return (
-    <div className="round-scores screen-center fade-in">
-      {res?.kind === "targeted" && (
-        <div className="round-recap">
-          <h2>This round's verdicts</h2>
-          <div className="recap-list">
-            {res.items.map((it, i) => (
-              <div key={i} className="recap-row slide-in" style={{ animationDelay: `${i * 0.15}s` }}>
-                <b>{it.targetName}</b> loved: "<i>{it.bestText}</i>"
-                <span className="recap-writer">
-                  — by {it.writerName} {it.correctGuess ? "🎯 (caught them!)" : "🕵️ (got away with it)"}
-                </span>
+    <div className="round-scores fade-in">
+      <div className="rs-panel">
+        {res?.kind === "targeted" && (
+          <section className="rs-block">
+            <h2 className="rs-head">This round's verdicts</h2>
+            <div className="recap-list">
+              {res.items.map((it, i) => (
+                <div key={i} className="recap-row slide-in" style={{ animationDelay: `${i * 0.12}s` }}>
+                  <p className="recap-quote"><b>{it.targetName}</b> loved <span className="recap-q">"{it.bestText}"</span></p>
+                  <p className="recap-meta">
+                    <span className="recap-by">by {it.writerName}</span>
+                    <span className={`recap-tag ${it.correctGuess ? "caught" : "away"}`}>
+                      {it.correctGuess ? "🎯 caught them" : "🕵️ got away"}
+                    </span>
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+        {res?.kind === "vote" && res.winner && (
+          <section className="rs-block">
+            <h2 className="rs-head">🏆 Funniest answer</h2>
+            <div className="winner-answer pop-in">
+              {res.winner.promptText && res.winner.promptText !== "The Friendship Test" && (
+                <p className="ba-prompt">"{res.winner.promptText}"</p>
+              )}
+              <p className="ba-text">{res.winner.text}</p>
+              <p className="recap-writer">— {res.winner.writerName} · {res.winner.votes} votes</p>
+            </div>
+          </section>
+        )}
+
+        <section className="rs-block">
+          <h3 className="sb-head">Scores</h3>
+          <div className="scoreboard">
+            {board.map((p, i) => (
+              <div key={p.id} className={`sb-row ${i === 0 ? "lead" : ""}`} style={{ animationDelay: `${i * 0.08}s` }}>
+                <span className="sb-rank">{i + 1}</span>
+                <span className="chip-av"><Avatar index={p.avatar} size={36} />{p.isLeader && <span className="crown crown-sm">👑</span>}</span>
+                <span className="sb-name" style={{ color: p.color }}>{p.name}</span>
+                <span className="sb-bar"><span className="sb-fill" style={{ width: `${(p.score / max) * 100}%`, background: p.color }} /></span>
+                <span className="sb-score">{p.score}</span>
               </div>
             ))}
           </div>
-        </div>
-      )}
-      {res?.kind === "vote" && res.winner && (
-        <div className="round-recap">
-          <h2>🏆 Funniest answer</h2>
-          <div className="winner-answer pop-in">
-            {res.winner.promptText && res.winner.promptText !== "The Friendship Test" && (
-              <p className="ba-prompt">"{res.winner.promptText}"</p>
-            )}
-            <p className="ba-text">{res.winner.text}</p>
-            <p className="recap-writer">— {res.winner.writerName} · {res.winner.votes} votes</p>
-          </div>
-        </div>
-      )}
+        </section>
 
-      <h3 className="sb-head">Scores</h3>
-      <div className="scoreboard">
-        {board.map((p, i) => (
-          <div key={p.id} className="sb-row" style={{ animationDelay: `${i * 0.08}s` }}>
-            <span className="sb-rank">{i + 1}</span>
-            <span className="chip-av"><Avatar index={p.avatar} size={40} />{p.isLeader && <span className="crown crown-sm">👑</span>}</span>
-            <span className="sb-name" style={{ color: p.color }}>{p.name}</span>
-            <span className="sb-bar"><span className="sb-fill" style={{ width: `${(p.score / max) * 100}%`, background: p.color }} /></span>
-            <span className="sb-score">{p.score}</span>
-          </div>
-        ))}
+        <button className="btn btn-lime rs-next" onClick={onNext}>
+          {state.isFinalRound ? "See the winner ⏭" : "Next round ⏭"}
+        </button>
       </div>
-      <button className="btn btn-sm btn-ghost host-skip" onClick={onNext}>
-        {state.isFinalRound ? "see the winner ⏭" : "next round ⏭"}
-      </button>
     </div>
   );
 }

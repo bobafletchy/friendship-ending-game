@@ -88,6 +88,11 @@ export default function Home({ onHost, onJoin }) {
               <p className="avatar-name">{isCustom ? "Your creation ✨" : AVATARS[avatar].name}</p>
 
               <div className="avatar-rail">
+                <button type="button" className={`avatar-pick make-own ${isCustom ? "sel" : ""}`}
+                  onClick={() => setBuilderOpen(true)} aria-label="Create your own character" title="Create your own character">
+                  <span className="make-own-icon" aria-hidden="true">🎨</span>
+                  <span className="make-own-label">Create</span>
+                </button>
                 {AVATAR_PICKS.map((i) => (
                   <button type="button" key={i}
                     className={`avatar-pick ${i === avatar ? "sel" : ""}`}
@@ -95,8 +100,6 @@ export default function Home({ onHost, onJoin }) {
                     <Avatar index={i} size={40} />
                   </button>
                 ))}
-                <button type="button" className={`avatar-pick make-own ${isCustom ? "sel" : ""}`}
-                  onClick={() => setBuilderOpen(true)} aria-label="Make your own">✨</button>
               </div>
 
               <input className="input input-code" placeholder="ROOM CODE" maxLength={4} value={code}
